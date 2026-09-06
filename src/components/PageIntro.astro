@@ -1,0 +1,23 @@
+---
+interface Props {
+	eyebrow?: string;
+	title: string;
+	class?: string;
+}
+
+const { eyebrow, title, class: className } = Astro.props;
+---
+
+<header class:list={['border-b border-line pb-16 pt-20 md:pb-20 md:pt-28', className]}>
+	{eyebrow && <p class="label mb-6">{eyebrow}</p>}
+	<h1 class="max-w-4xl font-serif text-4xl font-medium leading-[1.12] tracking-tight text-ink md:text-6xl lg:text-7xl">
+		{title}
+	</h1>
+	{
+		Astro.slots.has('default') && (
+			<div class="mt-8 max-w-xl font-body text-xl leading-[1.8] text-ink-muted">
+				<slot />
+			</div>
+		)
+	}
+</header>

@@ -1,0 +1,30 @@
+---
+import type { Book } from '../types';
+import { formatAuthors } from '../services/books';
+import BookCover from './BookCover.astro';
+
+interface Props {
+	book: Book;
+	size?: 'default' | 'hero';
+}
+
+const { book, size = 'default' } = Astro.props;
+const authors = formatAuthors(book);
+---
+
+<article>
+	<a href={`/livres/${book.slug}`} class="group block">
+		<BookCover book={book} size={size} />
+		<div class="mt-7 max-w-md">
+			<h2
+				class:list={[
+					'font-serif font-medium leading-snug tracking-tight text-ink group-hover:text-accent',
+					size === 'hero' ? 'text-3xl md:text-4xl' : 'text-2xl md:text-[1.75rem]',
+				]}
+			>
+				{book.title}
+			</h2>
+			<p class="mt-2 font-body text-[1.05rem] italic text-ink-muted">{authors}</p>
+		</div>
+	</a>
+</article>

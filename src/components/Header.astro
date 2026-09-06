@@ -1,0 +1,49 @@
+---
+import { navigation, site } from '../data/site';
+
+const pathname = Astro.url.pathname;
+const current = pathname.endsWith('/') && pathname !== '/' ? pathname.slice(0, -1) : pathname;
+
+function isActive(href: string) {
+	if (href === '/') return current === '/';
+	if (href === '/catalogue') {
+		return current === '/catalogue' || current.startsWith('/livres/');
+	}
+	return current === href || current.startsWith(`${href}/`);
+}
+---
+
+<header class="border-b border-line">
+	<div class="mx-auto flex max-w-[1400px] items-center justify-between gap-8 px-6 py-8 md:px-12 lg:px-16">
+		<a href="/" class="shrink-0" aria-label={site.name}>
+			<img
+				src="/logos/orat.png"
+				alt={site.name}
+				width="190"
+				height="50"
+				class="h-8 w-auto md:h-9"
+			/>
+		</a>
+
+		<nav aria-label="Navigation principale">
+			<ul class="flex items-center gap-6 md:gap-12">
+				{
+					navigation.map((item) => (
+						<li>
+							<a
+								href={item.href}
+								class:list={[
+									'label transition-colors duration-200 hover:text-ink',
+									isActive(item.href) ? 'text-ink' : 'text-ink-muted',
+								]}
+								aria-current={isActive(item.href) ? 'page' : undefined}
+							>
+								{item.label}
+							</a>
+						</li>
+					))
+				}
+			</ul>
+		</nav>
+	</div>
+</header>

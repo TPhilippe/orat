@@ -1,0 +1,88 @@
+---
+import ButtonLink from '../components/ButtonLink.astro';
+import Container from '../components/Container.astro';
+import FounderCard from '../components/FounderCard.astro';
+import PageIntro from '../components/PageIntro.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollections, getHouse } from '../services/house';
+
+const house = await getHouse();
+const collections = await getCollections();
+---
+
+<BaseLayout
+	title="La maison"
+	description="Éditions Orat, maison d’édition suisse indépendante fondée à Môtier en 2026."
+>
+	<Container wide>
+		<PageIntro eyebrow="La maison" title={house.name}>
+			{house.tagline} Fondée à {house.city} en {house.founded}.
+		</PageIntro>
+	</Container>
+
+	<section class="py-24 md:py-32">
+		<Container narrow>
+			<div class="space-y-8 font-body text-xl leading-[1.85] text-ink">
+				{house.history.map((paragraph) => <p>{paragraph}</p>)}
+			</div>
+		</Container>
+	</section>
+
+	{
+		house.strengths.map((strength) => (
+			<section class="border-t border-line py-24 md:py-32">
+				<Container narrow>
+					<p class="label mb-8">L’objet-livre</p>
+					<h2 class="font-serif text-3xl font-medium tracking-tight md:text-5xl">{strength.title}</h2>
+					<div class="mt-10 space-y-7 font-body text-xl leading-[1.85] text-ink">
+						{strength.body.map((paragraph) => (
+							<p>{paragraph}</p>
+						))}
+					</div>
+				</Container>
+			</section>
+		))
+	}
+
+	<section class="border-t border-line py-24 md:py-32">
+		<Container wide>
+			<p class="label mb-16">Les fondateurs</p>
+			<div class="space-y-24 md:space-y-32">
+				{house.founders.map((founder) => <FounderCard founder={founder} />)}
+			</div>
+		</Container>
+	</section>
+
+	<section class="border-t border-line py-24 md:py-32">
+		<Container wide>
+			<p class="label mb-16">Collections</p>
+			<div class="grid gap-12 md:grid-cols-2 md:gap-24">
+				{
+					collections.map((collection) => (
+						<article>
+							<h2 class="font-serif text-3xl font-medium tracking-tight">{collection.name}</h2>
+							<p class="mt-5 font-body text-xl leading-relaxed text-ink-muted">
+								{collection.description}
+							</p>
+							<a href={`/catalogue#${collection.slug}`} class="editorial-link mt-8 inline-block">
+								Les titres
+							</a>
+						</article>
+					))
+				}
+			</div>
+		</Container>
+	</section>
+
+	<section class="border-t border-line py-24 md:py-32">
+		<Container narrow>
+			<p class="label">Présentation</p>
+			<p class="mt-6 max-w-xl font-body text-xl leading-relaxed text-ink-muted">
+				La présentation 2026 de la maison : ligne éditoriale, fondateurs, points forts et premières parutions.
+			</p>
+			<div class="mt-10">
+				<ButtonLink href={house.presentationPdf}>Télécharger le PDF</ButtonLink>
+			</div>
+		</Container>
+	</section>
+</BaseLayout>

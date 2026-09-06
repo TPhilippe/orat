@@ -1,0 +1,38 @@
+---
+import type { Book } from '../types';
+import { excerpt, formatAuthors } from '../services/books';
+import BookCover from './BookCover.astro';
+
+interface Props {
+	book: Book;
+}
+
+const { book } = Astro.props;
+const authors = formatAuthors(book);
+const lead = excerpt(book.synopsis, 2);
+---
+
+<article class="grid items-center gap-12 lg:grid-cols-2 lg:gap-24 xl:gap-32">
+	<a href={`/livres/${book.slug}`} class="mx-auto block w-full max-w-md lg:mx-0 lg:max-w-none">
+		<BookCover book={book} size="hero" />
+	</a>
+
+	<div class="max-w-xl lg:py-8">
+		<p class="label">{book.collection.name}</p>
+		<h2 class="mt-8 font-serif text-4xl font-medium leading-[1.08] tracking-tight md:text-6xl">
+			<a href={`/livres/${book.slug}`} class="hover:text-accent">
+				{book.title}
+			</a>
+		</h2>
+		{
+			book.subtitle && (
+				<p class="mt-4 font-body text-xl italic leading-snug text-ink-muted">{book.subtitle}</p>
+			)
+		}
+		<p class="mt-5 font-body text-xl text-ink-muted">{authors}</p>
+		<p class="mt-10 font-body text-xl leading-[1.8] text-ink">{lead}</p>
+		<a href={`/livres/${book.slug}`} class="editorial-link mt-12 inline-block">
+			Lire
+		</a>
+	</div>
+</article>

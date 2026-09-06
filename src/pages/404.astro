@@ -1,0 +1,17 @@
+---
+import ButtonLink from '../components/ButtonLink.astro';
+import Container from '../components/Container.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Page introuvable" description="Cette page n’existe pas.">
+	<Container class="py-28 text-center">
+		<p class="label">404</p>
+		<h1 class="mt-6 font-serif text-4xl font-medium tracking-tight md:text-5xl">
+			Cette page s’est égarée.
+		</h1>
+		<div class="mt-10">
+			<ButtonLink href="/">Retour à l’accueil</ButtonLink>
+		</div>
+	</Container>
+</BaseLayout>

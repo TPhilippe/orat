@@ -1,0 +1,56 @@
+---
+import ContactForm from '../components/ContactForm.astro';
+import Container from '../components/Container.astro';
+import PageIntro from '../components/PageIntro.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getHouse } from '../services/house';
+
+const house = await getHouse();
+const websiteLabel = house.website.replace(/^https?:\/\//, '');
+---
+
+<BaseLayout
+	title="Contact"
+	description="Écrire aux Éditions Orat, commander un livre, ou nous rendre visite à Môtier."
+>
+	<Container>
+		<PageIntro eyebrow="Contact" title="Nous écrire">
+			Pour une commande, une presse, un manuscrit, ou simplement une lettre.
+		</PageIntro>
+	</Container>
+
+	<section class="py-24 md:py-32">
+		<Container wide>
+			<div class="grid gap-20 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-32">
+				<div>
+					<p class="label">Adresse</p>
+					<p class="mt-6 font-serif text-3xl font-medium leading-snug">
+						{house.legalName}
+						<br />
+						{house.address.map((line) => (
+							<>
+								{line}
+								<br />
+							</>
+						))}
+					</p>
+					<div class="mt-12 space-y-2 font-body text-lg">
+						<p>
+							<a href={`mailto:${house.email}`} class="hover:text-accent">{house.email}</a>
+						</p>
+						<p>
+							<a href={house.website} class="hover:text-accent">{websiteLabel}</a>
+						</p>
+						{
+							house.phone && <p class="text-ink-muted">{house.phone}</p>
+						}
+					</div>
+				</div>
+
+				<div>
+					<ContactForm email={house.email} />
+				</div>
+			</div>
+		</Container>
+	</section>
+</BaseLayout>

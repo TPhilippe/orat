@@ -1,0 +1,59 @@
+---
+import { navigation, site } from '../data/site';
+import { getHouse } from '../services/house';
+
+const house = await getHouse();
+const year = new Date().getFullYear();
+---
+
+<footer class="mt-8 border-t border-line">
+	<div class="mx-auto grid max-w-[1400px] gap-16 px-6 py-20 md:grid-cols-3 md:px-12 lg:px-16 lg:py-24">
+		<div>
+			<img
+				src="/logos/orat.png"
+				alt={site.name}
+				width="220"
+				height="58"
+				class="h-8 w-auto"
+			/>
+			<p class="mt-6 max-w-xs font-body text-lg leading-relaxed text-ink-muted">{house.tagline}</p>
+		</div>
+
+		<div>
+			<p class="label mb-5">Parcourir</p>
+			<ul class="space-y-3">
+				{
+					navigation.map((item) => (
+						<li>
+							<a href={item.href} class="font-body text-lg text-ink-muted transition-colors hover:text-ink">
+								{item.label}
+							</a>
+						</li>
+					))
+				}
+			</ul>
+		</div>
+
+		<div>
+			<p class="label mb-5">Correspondance</p>
+			<p class="font-body text-lg leading-relaxed text-ink-muted">
+				{house.address.map((line) => (
+					<>
+						{line}
+						<br />
+					</>
+				))}
+			</p>
+			<a href={`mailto:${house.email}`} class="mt-4 inline-block font-body text-lg text-ink hover:text-accent">
+				{house.email}
+			</a>
+		</div>
+	</div>
+
+	<div
+		class="mx-auto flex max-w-[1400px] flex-col gap-2 border-t border-line px-6 py-8 text-sm text-ink-muted md:flex-row md:items-center md:justify-between md:px-12 lg:px-16"
+	>
+		<p>© {year} {house.legalName}</p>
+		<p>{house.city}</p>
+	</div>
+</footer>

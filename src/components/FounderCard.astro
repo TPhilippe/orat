@@ -1,0 +1,45 @@
+---
+import type { Founder } from '../types';
+
+interface Props {
+	founder: Founder;
+}
+
+const { founder } = Astro.props;
+---
+
+<article
+	class:list={[
+		'grid items-start gap-10 md:gap-16',
+		founder.portrait && 'md:grid-cols-2',
+	]}
+>
+	{
+		founder.portrait && (
+			<figure>
+				<img
+					src={founder.portrait}
+					alt={founder.name}
+					width="720"
+					height="900"
+					class="h-auto w-full"
+				/>
+			</figure>
+		)
+	}
+	<div class={founder.portrait ? 'md:pt-2' : 'max-w-2xl'}>
+		<p class="label">{founder.origin}</p>
+		<h2 class="mt-5 font-serif text-3xl font-medium tracking-tight md:text-4xl">{founder.name}</h2>
+		<p class="mt-5 font-body text-lg leading-[1.8] text-ink-muted">{founder.bio}</p>
+		<ul class="mt-8 space-y-3 font-body text-lg leading-relaxed text-ink-muted">
+			{founder.highlights.map((item) => <li>{item}</li>)}
+		</ul>
+		{
+			founder.website && (
+				<a href={founder.website} class="editorial-link mt-8 inline-block">
+					Site personnel
+				</a>
+			)
+		}
+	</div>
+</article>

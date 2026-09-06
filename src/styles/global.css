@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+@theme {
+	--font-serif: "Cormorant Garamond", "Palatino Linotype", Palatino, Georgia, serif;
+	--font-body: "EB Garamond", "Iowan Old Style", Georgia, serif;
+	--font-sans: "Source Sans 3", "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+	--color-paper: #f4f1ea;
+	--color-paper-raised: #f8f5ef;
+	--color-ink: #1b1814;
+	--color-ink-muted: #6f6860;
+	--color-line: #d9d2c6;
+	--color-accent: #8a4d45;
+	--color-accent-hover: #6e3b35;
+}
+
+@layer base {
+	html {
+		scroll-behavior: smooth;
+		background-color: var(--color-paper);
+	}
+
+	body {
+		background-color: var(--color-paper);
+		color: var(--color-ink);
+		font-family: var(--font-body);
+		font-size: 1.1875rem;
+		line-height: 1.75;
+		-webkit-font-smoothing: antialiased;
+	}
+
+	::selection {
+		background-color: color-mix(in srgb, var(--color-accent) 16%, transparent);
+		color: var(--color-ink);
+	}
+}
+
+@utility label {
+	font-family: var(--font-sans);
+	font-size: 0.6875rem;
+	letter-spacing: 0.24em;
+	text-transform: uppercase;
+	color: var(--color-ink-muted);
+}
+
+@utility editorial-link {
+	font-family: var(--font-sans);
+	font-size: 0.6875rem;
+	letter-spacing: 0.22em;
+	text-transform: uppercase;
+	color: var(--color-ink);
+	border-bottom: 1px solid var(--color-ink);
+	padding-bottom: 0.15rem;
+	transition: color 200ms ease, border-color 200ms ease;
+
+	&:hover {
+		color: var(--color-accent);
+		border-color: var(--color-accent);
+	}
+}

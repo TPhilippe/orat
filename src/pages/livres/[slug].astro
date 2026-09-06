@@ -1,0 +1,97 @@
+---
+import BookCover from '../../components/BookCover.astro';
+import BookGrid from '../../components/BookGrid.astro';
+import ButtonLink from '../../components/ButtonLink.astro';
+import Container from '../../components/Container.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import {
+	formatAuthors,
+	formatPrice,
+	getBookBySlug,
+	getBooks,
+	getRelatedBooks,
+} from '../../services/books';
+import { getHouse } from '../../services/house';
+
+export async function getStaticPaths() {
+	const books = await getBooks();
+	return books.map((book) => ({
+		params: { slug: book.slug },
+	}));
+}
+
+const { slug } = Astro.params;
+const book = slug ? await getBookBySlug(slug) : undefined;
+
+if (!book) {
+	return new Response(null, { status: 404, statusText: 'Not Found' });
+}
+
+const house = await getHouse();
+const related = await getRelatedBooks(book);
+const authors = formatAuthors(book);
+const orderHref = `mailto:${house.email}?subject=${encodeURIComponent(`Ouvrage — ${book.title}`)}`;
+
+const facts = [
+	{ label: 'Collection', value: book.collection.name },
+	{ label: 'Parution', value: book.release ?? String(book.year) },
+	book.pages ? { label: 'Pages', value: String(book.pages) } : null,
+	book.isbn ? { label: 'ISBN', value: book.isbn } : null,
+	book.price != null ? { label: 'Prix', value: formatPrice(book.price, book.currency) } : null,
+	book.previousEdition ? { label: 'Première édition', value: book.previousEdition } : null,
+].filter((fact): fact is { label: string; value: string } => fact !== null);
+---
+
+<BaseLayout title={book.title} description={book.synopsis}>
+	<Container wide class="py-20 md:py-28">
+		<div class="grid items-start gap-16 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-24 xl:gap-32">
+			<div class="mx-auto w-full max-w-md lg:mx-0 lg:max-w-none">
+				<BookCover book={book} size="hero" />
+			</div>
+
+			<div class="lg:pt-6">
+				<p class="label">{book.collection.name}</p>
+				<h1 class="mt-8 font-serif text-4xl font-medium leading-[1.08] tracking-tight md:text-6xl">
+					{book.title}
+				</h1>
+				{
+					book.subtitle && (
+						<p class="mt-4 font-body text-2xl italic leading-snug text-ink-muted">{book.subtitle}</p>
+					)
+				}
+				<p class="mt-5 font-body text-xl text-ink-muted">{authors}</p>
+
+				<p class="mt-12 max-w-xl font-body text-xl leading-[1.85] text-ink">
+					{book.synopsis}
+				</p>
+
+				<dl class="mt-16 grid max-w-xl grid-cols-2 gap-x-10 gap-y-8 border-t border-line pt-12">
+					{
+						facts.map((fact) => (
+							<div>
+								<dt class="label">{fact.label}</dt>
+								<dd class="mt-2 font-body text-lg">{fact.value}</dd>
+							</div>
+						))
+					}
+				</dl>
+
+				<div class="mt-14 flex flex-wrap items-center gap-10">
+					<ButtonLink href={orderHref}>Écrire à la maison</ButtonLink>
+					<ButtonLink href="/catalogue">Le catalogue</ButtonLink>
+				</div>
+			</div>
+		</div>
+	</Container>
+
+	{
+		related.length > 0 && (
+			<section class="border-t border-line py-24 md:py-32">
+				<Container wide>
+					<p class="label mb-16">Dans la même collection</p>
+					<BookGrid books={related} />
+				</Container>
+			</section>
+		)
+	}
+</BaseLayout>

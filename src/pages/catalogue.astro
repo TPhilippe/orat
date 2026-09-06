@@ -1,0 +1,51 @@
+---
+import BookGrid from '../components/BookGrid.astro';
+import Container from '../components/Container.astro';
+import PageIntro from '../components/PageIntro.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getBooks } from '../services/books';
+import { getCollections } from '../services/house';
+
+const collections = await getCollections();
+const books = await getBooks();
+---
+
+<BaseLayout
+	title="Catalogue"
+	description="Le catalogue des Éditions Orat : récits et essais. Premières parutions, janvier–mars 2027."
+>
+	<Container wide>
+		<PageIntro eyebrow="Catalogue" title="Les livres">
+			Premières parutions, janvier–mars 2027. Récits de vie, essais, voyages intérieurs.
+		</PageIntro>
+
+		<nav class="flex flex-wrap gap-x-10 gap-y-3 py-12" aria-label="Collections">
+			{
+				collections.map((collection) => (
+					<a href={`#${collection.slug}`} class="label hover:text-ink">
+						{collection.name}
+					</a>
+				))
+			}
+		</nav>
+	</Container>
+
+	{
+		collections.map((collection) => {
+			const titles = books.filter((book) => book.collection.slug === collection.slug);
+			if (!titles.length) return null;
+
+			return (
+				<section id={collection.slug} class="scroll-mt-24 border-t border-line py-24 md:py-32">
+					<Container wide>
+						<div class="mb-16 max-w-xl md:mb-20">
+							<h2 class="font-serif text-3xl font-medium tracking-tight md:text-4xl">{collection.name}</h2>
+							<p class="mt-4 font-body text-xl text-ink-muted">{collection.description}</p>
+						</div>
+						<BookGrid books={titles} />
+					</Container>
+				</section>
+			);
+		})
+	}
+</BaseLayout>
