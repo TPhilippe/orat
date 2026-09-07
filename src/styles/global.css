@@ -43,6 +43,15 @@
 	color: var(--color-ink-muted);
 }
 
+@utility hide-scrollbar {
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+
+	&::-webkit-scrollbar {
+		display: none;
+	}
+}
+
 @utility editorial-link {
 	font-family: var(--font-sans);
 	font-size: 0.6875rem;

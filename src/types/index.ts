@@ -37,6 +37,8 @@ export type Book = {
 	cover: {
 		background: string;
 		foreground: string;
+		front?: string;
+		back?: string;
 	};
 };
 

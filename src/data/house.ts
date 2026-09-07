@@ -50,6 +50,7 @@ export const house: House = {
 			slug: 'anthony-tombez',
 			name: 'Anthony Tombez',
 			origin: 'Né à Lausanne en 1978.',
+			portrait: '/pictures/anthony.jpg',
 			bio: 'Dessinateur géomètre, thérapeute, artiste peintre et illustrateur. Son travail explore les liens entre géométrie sacrée, art et aménagement de l’espace. À travers ses soins, son art et son écriture, une même aspiration : la reconnexion à soi et à la lumière intérieure.',
 			highlights: [
 				'Expositions dans plusieurs galeries d’art en Suisse.',

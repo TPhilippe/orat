@@ -1,5 +1,5 @@
 ---
-import BookCover from '../../components/BookCover.astro';
+import BookJacket from '../../components/BookJacket.astro';
 import BookGrid from '../../components/BookGrid.astro';
 import ButtonLink from '../../components/ButtonLink.astro';
 import Container from '../../components/Container.astro';
@@ -46,7 +46,7 @@ const facts = [
 	<Container wide class="py-20 md:py-28">
 		<div class="grid items-start gap-16 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-24 xl:gap-32">
 			<div class="mx-auto w-full max-w-md lg:mx-0 lg:max-w-none">
-				<BookCover book={book} size="hero" />
+				<BookJacket book={book} size="hero" />
 			</div>
 
 			<div class="lg:pt-6">

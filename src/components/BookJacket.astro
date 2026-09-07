@@ -1,0 +1,142 @@
+---
+import type { Book } from '../types';
+import BookCover from './BookCover.astro';
+
+interface Props {
+	book: Book;
+	size?: 'default' | 'hero';
+}
+
+const { book, size = 'default' } = Astro.props;
+const faces = [book.cover.front, book.cover.back].filter((src): src is string => Boolean(src));
+const canFlip = faces.length > 1;
+const labels = ['Première de couverture', 'Quatrième de couverture'];
+---
+
+{
+	canFlip ? (
+		<div
+			class="book-jacket outline-none focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-4 focus-visible:outline-ink"
+			data-jacket
+			tabindex="0"
+		>
+			<div
+				class="book-jacket-rail hide-scrollbar flex aspect-[2/3] snap-x snap-mandatory overflow-x-auto overflow-y-hidden border border-line touch-pan-x"
+				data-rail
+			>
+				{faces.map((src, index) => (
+					<figure class="min-w-full shrink-0 basis-full snap-center snap-always">
+						<img
+							src={src}
+							alt={`${labels[index]} — ${book.title}`}
+							width="800"
+							height="1200"
+							class="h-full w-full object-cover"
+							draggable="false"
+						/>
+					</figure>
+				))}
+			</div>
+
+			<div class="mt-5 flex items-center justify-between gap-4">
+				<p class="label" data-caption aria-live="polite">
+					{labels[0]}
+				</p>
+				<div class="flex items-center gap-2">
+					<button
+						type="button"
+						class="grid size-9 place-items-center text-ink-muted transition-colors hover:text-ink disabled:pointer-events-none disabled:opacity-25"
+						data-prev
+						aria-label={labels[0]}
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="size-4" fill="none" aria-hidden="true">
+							<path d="M10.5 3.5 5.5 8l5 4.5" stroke="currentColor" stroke-width="1.2" />
+						</svg>
+					</button>
+					<div class="flex items-center gap-1.5" aria-hidden="true">
+						{faces.map((_, index) => (
+							<span
+								class:list={[
+									'size-1 rounded-full transition-colors',
+									index === 0 ? 'bg-ink' : 'bg-line',
+								]}
+								data-dot
+							/>
+						))}
+					</div>
+					<button
+						type="button"
+						class="grid size-9 place-items-center text-ink-muted transition-colors hover:text-ink disabled:pointer-events-none disabled:opacity-25"
+						data-next
+						aria-label={labels[1]}
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="size-4" fill="none" aria-hidden="true">
+							<path d="M5.5 3.5 10.5 8l-5 4.5" stroke="currentColor" stroke-width="1.2" />
+						</svg>
+					</button>
+				</div>
+			</div>
+		</div>
+	) : (
+		<BookCover book={book} size={size} />
+	)
+}
+
+<script>
+	const labels = ['Première de couverture', 'Quatrième de couverture'];
+
+	function setupJacket(root: HTMLElement) {
+		const rail = root.querySelector<HTMLElement>('[data-rail]');
+		const prev = root.querySelector<HTMLButtonElement>('[data-prev]');
+		const next = root.querySelector<HTMLButtonElement>('[data-next]');
+		const caption = root.querySelector<HTMLElement>('[data-caption]');
+		const dots = [...root.querySelectorAll<HTMLElement>('[data-dot]')];
+		if (!rail || !prev || !next) return;
+
+		const slideCount = rail.children.length;
+		const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+		function index() {
+			if (!rail) return 0;
+			const width = rail.clientWidth || 1;
+			return Math.round(rail.scrollLeft / width);
+		}
+
+		function go(target: number) {
+			if (!rail) return;
+			const clamped = Math.max(0, Math.min(slideCount - 1, target));
+			rail.scrollTo({
+				left: clamped * rail.clientWidth,
+				behavior: reduceMotion ? 'auto' : 'smooth',
+			});
+		}
+
+		function sync() {
+			const i = index();
+			if (caption) caption.textContent = labels[i] ?? '';
+			prev.disabled = i <= 0;
+			next.disabled = i >= slideCount - 1;
+			dots.forEach((dot, dotIndex) => {
+				dot.classList.toggle('bg-ink', dotIndex === i);
+				dot.classList.toggle('bg-line', dotIndex !== i);
+			});
+		}
+
+		prev.addEventListener('click', () => go(index() - 1));
+		next.addEventListener('click', () => go(index() + 1));
+		rail.addEventListener('scroll', () => requestAnimationFrame(sync), { passive: true });
+		root.addEventListener('keydown', (event) => {
+			if (event.key === 'ArrowLeft') {
+				event.preventDefault();
+				go(index() - 1);
+			}
+			if (event.key === 'ArrowRight') {
+				event.preventDefault();
+				go(index() + 1);
+			}
+		});
+		sync();
+	}
+
+	document.querySelectorAll<HTMLElement>('[data-jacket]').forEach(setupJacket);
+</script>

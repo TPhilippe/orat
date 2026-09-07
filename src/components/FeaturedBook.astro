@@ -1,7 +1,7 @@
 ---
 import type { Book } from '../types';
 import { excerpt, formatAuthors } from '../services/books';
-import BookCover from './BookCover.astro';
+import BookJacket from './BookJacket.astro';
 
 interface Props {
 	book: Book;
@@ -13,9 +13,9 @@ const lead = excerpt(book.synopsis, 2);
 ---
 
 <article class="grid items-center gap-12 lg:grid-cols-2 lg:gap-24 xl:gap-32">
-	<a href={`/livres/${book.slug}`} class="mx-auto block w-full max-w-md lg:mx-0 lg:max-w-none">
-		<BookCover book={book} size="hero" />
-	</a>
+	<div class="mx-auto w-full max-w-md lg:mx-0 lg:max-w-none">
+		<BookJacket book={book} size="hero" />
+	</div>
 
 	<div class="max-w-xl lg:py-8">
 		<p class="label">{book.collection.name}</p>
