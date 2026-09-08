@@ -48,15 +48,9 @@ const { email } = Astro.props;
 			class="mt-2 w-full resize-y border-0 border-b border-line bg-transparent py-3 text-xl text-ink outline-none transition-colors focus:border-ink"></textarea>
 	</label>
 
-	<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-		<button type="submit" class="editorial-link bg-transparent">
-			Envoyer
-		</button>
-		<p class="font-body text-lg text-ink-muted">
-			Ou écrivez-nous à
-			<a href={`mailto:${email}`} class="font-medium text-ink hover:text-accent">{email}</a>
-		</p>
-	</div>
+	<button type="submit" class="editorial-link bg-transparent">
+		Envoyer
+	</button>
 
 	<p id="contact-status" class="hidden font-body text-base text-ink-muted" role="status"></p>
 </form>

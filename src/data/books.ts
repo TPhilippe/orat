@@ -24,6 +24,29 @@ const bySlug = Object.fromEntries(authors.map((author) => [author.slug, author])
 
 export const books: Book[] = [
 	{
+		id: '2',
+		slug: 'schizophrenia',
+		title: 'Schizophrenia',
+		subtitle: 'Affinité élective et toxicité',
+		authors: [bySlug['dorian-amar']],
+		collection: recits,
+		year: 2026,
+		release: 'Janvier–mars 2027',
+		pages: 128,
+		currency: 'CHF',
+		status: 'forthcoming',
+		featured: true,
+		cover: {
+			background: '#2c241c',
+			foreground: '#eadfcf',
+			front: '/pictures/schizophrenia-cover.jpg',
+			back: '/pictures/schizophrenia-back.jpg',
+		},
+		isbn: '978-2-940881-00-0',
+		synopsis:
+			'Lettre oubliée d’un carnet fantastique. Dorian Amar plonge dans le jeu bouleversant d’une perverse narcissique. Dans un récit tour à tour sombre et lumineux, l’auteur s’interroge, au fil de sa chute, sur les raisons qui l’ont poussé à poursuivre cette relation et qui l’ont entraîné dans ce terrible jeu de séduction. Une prose dense, instinctive et charnelle, où la réflexion philosophique passe par la chair, l’esprit et la nature.',
+	},
+	{
 		id: '1',
 		slug: 'les-portes-de-l-amour',
 		title: 'Les Portes de l’Amour',
@@ -48,35 +71,12 @@ export const books: Book[] = [
 			'Que se passe-t-il lorsque la vie nous confronte à des expériences qui dépassent toute explication rationnelle ? Lorsque l’invisible s’invite dans le quotidien et bouleverse à jamais notre regard sur le monde ? Dans ce récit à la croisée de l’autobiographie intime et du voyage initiatique, Anthony Tombez partage l’histoire d’une transformation profonde. Entre enracinement et élévation, le livre invite chaque lecteur à se reconnecter à sa propre essence, à écouter son souffle, à honorer son corps et à s’ouvrir aux mystères de la vie.',
 	},
 	{
-		id: '2',
-		slug: 'schizophrenia',
-		title: 'Schizophrenia',
-		subtitle: 'Affinité élective et toxicité',
-		authors: [bySlug['dorian-amar']],
-		collection: recits,
-		year: 2026,
-		release: 'Janvier–mars 2027',
-		pages: 128,
-		currency: 'CHF',
-		status: 'forthcoming',
-		featured: true,
-		cover: {
-			background: '#2c241c',
-			foreground: '#eadfcf',
-			front: '/pictures/schizophrenia-cover.jpg',
-			back: '/pictures/schizophrenia-back.jpg',
-		},
-		isbn: '978-2-940881-00-0',
-		synopsis:
-			'Lettre oubliée d’un carnet fantastique. Dorian Amar plonge dans le jeu bouleversant d’une perverse narcissique. Dans un récit tour à tour sombre et lumineux, l’auteur s’interroge, au fil de sa chute, sur les raisons qui l’ont poussé à poursuivre cette relation et qui l’ont entraîné dans ce terrible jeu de séduction. Une prose dense, instinctive et charnelle, où la réflexion philosophique passe par la chair, l’esprit et la nature.',
-	},
-	{
 		id: '3',
 		slug: 'de-l-amour',
 		title: 'De l’Amour',
 		subtitle: 'Sur la colère et la violence, les fantasmes et les pulsions',
 		authors: [bySlug['dorian-amar']],
-		collection: essais,
+		collection: recits,
 		year: 2026,
 		release: 'Janvier–mars 2027',
 		pages: 200,
@@ -85,7 +85,7 @@ export const books: Book[] = [
 		previousEdition: '1re éd. Samsa, 2024',
 		cover: { background: '#4d4450', foreground: '#f3eee4' },
 		synopsis:
-			'Un essai sur la colère, la violence, les fantasmes et les pulsions. Dorian Amar poursuit ici une pensée incarnée, à la croisée de l’intime et du philosophique.',
+			'Un récit sur la colère, la violence, les fantasmes et les pulsions. Dorian Amar poursuit ici une pensée incarnée, à la croisée de l’intime et du philosophique.',
 	},
 	{
 		id: '4',

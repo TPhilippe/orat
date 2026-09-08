@@ -4,10 +4,9 @@ import Container from '../components/Container.astro';
 import FounderCard from '../components/FounderCard.astro';
 import PageIntro from '../components/PageIntro.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { getCollections, getHouse } from '../services/house';
+import { getHouse } from '../services/house';
 
 const house = await getHouse();
-const collections = await getCollections();
 ---
 
 <BaseLayout
@@ -49,27 +48,6 @@ const collections = await getCollections();
 			<p class="label mb-8">Les fondateurs</p>
 			<div class="space-y-12 md:space-y-16">
 				{house.founders.map((founder) => <FounderCard founder={founder} />)}
-			</div>
-		</Container>
-	</section>
-
-	<section class="border-t border-line py-12 md:py-16">
-		<Container wide>
-			<p class="label mb-8">Collections</p>
-			<div class="grid gap-10 md:grid-cols-2 md:gap-16">
-				{
-					collections.map((collection) => (
-						<article>
-							<h2 class="font-serif text-3xl font-semibold tracking-tight">{collection.name}</h2>
-							<p class="mt-3 font-body text-xl leading-relaxed text-ink">
-								{collection.description}
-							</p>
-							<a href={`/catalogue#${collection.slug}`} class="editorial-link mt-5 inline-block">
-								Les titres
-							</a>
-						</article>
-					))
-				}
 			</div>
 		</Container>
 	</section>

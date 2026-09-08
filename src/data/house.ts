@@ -2,7 +2,7 @@ import type { Collection, House } from '../types';
 
 export const house: House = {
 	name: 'Éditions Orat',
-	legalName: 'Éditions Orat SNC',
+	legalName: 'Éditions Orat Sàrl',
 	shortName: 'Orat',
 	tagline: 'Une édition suisse indépendante, exigeante et créative.',
 	founded: 2026,
@@ -45,6 +45,7 @@ export const house: House = {
 				'20 articles techniques publiés dans des revues professionnelles suisses et françaises.',
 				'Cité par la presse suisse et internationale ; certains livres ont reçu des distinctions internationales.',
 			],
+			website: 'https://dorianamar.fr/',
 		},
 		{
 			slug: 'anthony-tombez',
