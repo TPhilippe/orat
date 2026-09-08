@@ -9,7 +9,7 @@ export const house: House = {
 	city: 'Môtier',
 	country: 'Suisse',
 	address: ['Ruelle des Vignerons 23', '1787 Môtier (Vully)', 'Suisse'],
-	email: 'editions.orat@gmail.com',
+	email: 'info@editions-orat.ch',
 	website: 'https://www.editions-orat.ch',
 	presentationPdf: '/documents/presentation-orat.pdf',
 	statement: [

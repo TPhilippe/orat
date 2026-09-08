@@ -13,16 +13,18 @@ const authors = formatAuthors(book);
 ---
 
 <article>
-	<BookJacket book={book} size={size} />
-	<a href={`/livres/${book.slug}`} class="group mt-7 block max-w-md">
+	<div class="max-w-[13.5rem]">
+		<BookJacket book={book} size={size} />
+	</div>
+	<a href={`/livres/${book.slug}`} class="group mt-4 block max-w-md">
 		<h2
 			class:list={[
-				'font-serif font-medium leading-snug tracking-tight text-ink group-hover:text-accent',
-				size === 'hero' ? 'text-3xl md:text-4xl' : 'text-2xl md:text-[1.75rem]',
+				'font-serif font-semibold leading-snug tracking-tight text-ink group-hover:text-accent',
+				size === 'hero' ? 'text-2xl md:text-3xl' : 'text-xl md:text-2xl',
 			]}
 		>
 			{book.title}
 		</h2>
-		<p class="mt-2 font-body text-[1.05rem] italic text-ink-muted">{authors}</p>
+		<p class="mt-1.5 font-body text-lg text-ink-muted">{authors}</p>
 	</a>
 </article>

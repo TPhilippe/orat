@@ -3,7 +3,7 @@ export const site = {
 	shortName: 'Orat',
 	description:
 		'Maison d’édition suisse indépendante. Récits, essais et chemins intérieurs — une édition exigeante et créative.',
-	email: 'editions.orat@gmail.com',
+	email: 'info@editions-orat.ch',
 };
 
 export const navigation = [

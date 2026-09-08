@@ -16,14 +16,14 @@ const others = (featured.length ? featured : books).filter((book) => book.id !==
 
 <BaseLayout title={site.name} description={site.description}>
 	<section>
-		<Container wide class="pb-20 pt-24 md:pb-28 md:pt-36">
+		<Container wide class="pb-12 pt-12 md:pb-16 md:pt-16">
 			<p class="label">Maison d’édition · {house.city}</p>
 			<h1
-				class="mt-10 max-w-5xl font-serif text-5xl font-medium italic leading-[1.06] tracking-tight text-ink md:text-7xl lg:text-8xl"
+				class="mt-5 max-w-5xl font-serif text-4xl font-semibold leading-[1.12] tracking-tight text-ink md:text-6xl lg:text-7xl"
 			>
 				Des chemins qui ramènent à l’essentiel.
 			</h1>
-			<p class="mt-12 max-w-lg font-body text-xl leading-[1.8] text-ink-muted md:text-[1.35rem]">
+			<p class="mt-6 max-w-2xl font-body text-xl leading-[1.7] text-ink md:text-[1.4rem]">
 				{house.statement[0]}
 			</p>
 		</Container>
@@ -32,8 +32,8 @@ const others = (featured.length ? featured : books).filter((book) => book.id !==
 	{
 		hero && (
 			<section class="border-t border-line">
-				<Container wide class="py-24 md:py-32">
-					<p class="label mb-16 md:mb-20">À paraître · janvier–mars 2027</p>
+				<Container wide class="py-12 md:py-16">
+					<p class="label mb-8">À paraître · janvier–mars 2027</p>
 					<FeaturedBook book={hero} />
 				</Container>
 			</section>
@@ -43,8 +43,8 @@ const others = (featured.length ? featured : books).filter((book) => book.id !==
 	{
 		others.length > 0 && (
 			<section class="border-t border-line">
-				<Container wide class="py-24 md:py-32">
-					<div class="mb-16 flex items-baseline justify-between gap-8 md:mb-20">
+				<Container wide class="py-12 md:py-16">
+					<div class="mb-8 flex items-baseline justify-between gap-8">
 						<p class="label">Autres titres</p>
 						<a href="/catalogue" class="editorial-link">
 							Le catalogue
@@ -57,14 +57,14 @@ const others = (featured.length ? featured : books).filter((book) => book.id !==
 	}
 
 	<section class="border-t border-line">
-		<Container narrow class="py-28 md:py-36">
-			<blockquote class="font-serif text-3xl font-medium italic leading-snug tracking-tight md:text-5xl">
+		<Container narrow class="py-14 md:py-20">
+			<blockquote class="font-serif text-3xl font-semibold leading-snug tracking-tight md:text-4xl">
 				{house.tagline}
 			</blockquote>
-			<p class="mt-12 font-body text-xl leading-[1.85] text-ink">
+			<p class="mt-8 font-body text-xl leading-[1.7] text-ink">
 				{house.history[0]}
 			</p>
-			<a href="/maison" class="editorial-link mt-12 inline-block">
+			<a href="/maison" class="editorial-link mt-8 inline-block">
 				La maison
 			</a>
 		</Container>

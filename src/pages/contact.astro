@@ -19,12 +19,12 @@ const websiteLabel = house.website.replace(/^https?:\/\//, '');
 		</PageIntro>
 	</Container>
 
-	<section class="py-24 md:py-32">
+	<section class="py-12 md:py-16">
 		<Container wide>
-			<div class="grid gap-20 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-32">
+			<div class="grid gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-20">
 				<div>
 					<p class="label">Adresse</p>
-					<p class="mt-6 font-serif text-3xl font-medium leading-snug">
+					<p class="mt-4 font-serif text-2xl font-semibold leading-snug md:text-3xl">
 						{house.legalName}
 						<br />
 						{house.address.map((line) => (
@@ -34,9 +34,9 @@ const websiteLabel = house.website.replace(/^https?:\/\//, '');
 							</>
 						))}
 					</p>
-					<div class="mt-12 space-y-2 font-body text-lg">
+					<div class="mt-8 space-y-2 font-body text-xl">
 						<p>
-							<a href={`mailto:${house.email}`} class="hover:text-accent">{house.email}</a>
+							<a href={`mailto:${house.email}`} class="font-medium hover:text-accent">{house.email}</a>
 						</p>
 						<p>
 							<a href={house.website} class="hover:text-accent">{websiteLabel}</a>
@@ -45,6 +45,9 @@ const websiteLabel = house.website.replace(/^https?:\/\//, '');
 							house.phone && <p class="text-ink-muted">{house.phone}</p>
 						}
 					</div>
+					<p class="mt-8 max-w-sm font-body text-lg leading-relaxed text-ink-muted">
+						Préférez le formulaire : il limite le courrier indésirable. L’adresse {house.email} reste disponible pour les échanges habituels.
+					</p>
 				</div>
 
 				<div>
