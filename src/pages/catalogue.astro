@@ -15,28 +15,35 @@ const books = await getBooks();
 	description="Le catalogue des Éditions Orat : récits et essais. Premières parutions, janvier–mars 2027."
 >
 	<Container wide>
-		<PageIntro eyebrow="Catalogue" title="Les livres">
+		<PageIntro eyebrow="Catalogue" title="Les livres" rule={false}>
 			Premières parutions, janvier–mars 2027. Récits de vie, essais, voyages intérieurs.
 		</PageIntro>
-
-		<nav class="flex flex-wrap gap-x-8 gap-y-3 py-8" aria-label="Collections">
-			{
-				collections.map((collection) => (
-					<a href={`#${collection.slug}`} class="label hover:text-ink">
-						{collection.name}
-					</a>
-				))
-			}
-		</nav>
 	</Container>
 
+	<nav class="border-y border-line" aria-label="Collections">
+		<Container wide>
+			<div class="flex flex-wrap gap-x-8 gap-y-3 py-5 md:py-6">
+				{
+					collections.map((collection) => (
+						<a href={`#${collection.slug}`} class="label hover:text-ink">
+							{collection.name}
+						</a>
+					))
+				}
+			</div>
+		</Container>
+	</nav>
+
 	{
-		collections.map((collection) => {
+		collections.map((collection, index) => {
 			const titles = books.filter((book) => book.collection.slug === collection.slug);
 			if (!titles.length) return null;
 
 			return (
-				<section id={collection.slug} class="scroll-mt-20 border-t border-line py-12 md:py-16">
+				<section
+					id={collection.slug}
+					class:list={['scroll-mt-20 py-12 md:py-16', index > 0 && 'border-t border-line']}
+				>
 					<Container wide>
 						<div class="mb-8 max-w-xl">
 							<h2 class="font-serif text-3xl font-semibold tracking-tight md:text-4xl">{collection.name}</h2>

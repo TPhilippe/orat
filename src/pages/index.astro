@@ -11,7 +11,7 @@ const house = await getHouse();
 const featured = await getFeaturedBooks();
 const books = await getBooks();
 const hero = featured[0] ?? books[0];
-const others = (featured.length ? featured : books).filter((book) => book.id !== hero?.id).slice(0, 2);
+const others = books.filter((book) => book.id !== hero?.id);
 ---
 
 <BaseLayout title={site.name} description={site.description}>
@@ -50,7 +50,7 @@ const others = (featured.length ? featured : books).filter((book) => book.id !==
 							Le catalogue
 						</a>
 					</div>
-					<BookGrid books={others} />
+					<BookGrid books={others} random={4} />
 				</Container>
 			</section>
 		)

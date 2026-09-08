@@ -106,8 +106,8 @@ export const books: Book[] = [
 	{
 		id: '5',
 		slug: 'sur-la-bete-humaine',
-		title: 'Sur la bête humaine',
-		subtitle: 'L’intégrale — quatre titres',
+		title: 'L’intégrale Sur la bête Humaine',
+		subtitle: 'Quatre titres',
 		authors: [bySlug['dorian-amar']],
 		collection: recits,
 		year: 2026,

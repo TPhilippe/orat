@@ -12,11 +12,11 @@ const { book, size = 'default' } = Astro.props;
 const authors = formatAuthors(book);
 ---
 
-<article>
-	<div class="max-w-[13.5rem]">
+<article class="flex flex-col items-center text-center">
+	<div class="w-full max-w-[13.5rem]">
 		<BookJacket book={book} size={size} />
 	</div>
-	<a href={`/livres/${book.slug}`} class="group mt-4 block max-w-md">
+	<a href={`/livres/${book.slug}`} class="group mt-4 block w-full max-w-[13.5rem]">
 		<h2
 			class:list={[
 				'font-serif font-semibold leading-snug tracking-tight text-ink group-hover:text-accent',

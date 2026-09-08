@@ -4,11 +4,61 @@ import BookCard from './BookCard.astro';
 
 interface Props {
 	books: Book[];
+	random?: number;
 }
 
-const { books } = Astro.props;
+const { books, random } = Astro.props;
+const columns = random === 4 ? 'sm:grid-cols-2 xl:grid-cols-4' : 'sm:grid-cols-2 lg:grid-cols-3';
 ---
 
-<div class="grid gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 lg:gap-x-14 lg:gap-y-16">
-	{books.map((book) => <BookCard book={book} />)}
+<div
+	class:list={['grid gap-x-10 gap-y-12 lg:gap-x-14 lg:gap-y-16', columns]}
+	data-random-grid={random ? String(random) : undefined}
+>
+	{
+		books.map((book) =>
+			random ? (
+				<div data-random-item>
+					<BookCard book={book} />
+				</div>
+			) : (
+				<BookCard book={book} />
+			),
+		)
+	}
 </div>
+
+{
+	random ? (
+		<>
+			<style is:global>
+				[data-random-grid]:not([data-ready]) [data-random-item]:nth-child(n + 5) {
+					display: none;
+				}
+			</style>
+			<script>
+				document.querySelectorAll<HTMLElement>('[data-random-grid]').forEach((grid) => {
+					if (grid.dataset.ready) return;
+					const count = Number(grid.dataset.randomGrid);
+					if (!count) return;
+
+					const items = [...grid.querySelectorAll<HTMLElement>('[data-random-item]')];
+					for (let i = items.length - 1; i > 0; i--) {
+						const j = Math.floor(Math.random() * (i + 1));
+						[items[i], items[j]] = [items[j], items[i]];
+					}
+
+					items.forEach((item, index) => {
+						if (index < count) {
+							grid.appendChild(item);
+						} else {
+							item.remove();
+						}
+					});
+
+					grid.dataset.ready = 'true';
+				});
+			</script>
+		</>
+	) : null
+}
