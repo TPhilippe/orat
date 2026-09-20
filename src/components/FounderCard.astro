@@ -22,7 +22,10 @@ const { founder } = Astro.props;
 					alt={founder.name}
 					width="320"
 					height="400"
-					class="aspect-[4/5] w-full object-cover object-[center_18%]"
+					class:list={[
+						'aspect-[4/5] w-full object-cover',
+						founder.slug === 'anthony-tombez' ? 'object-center' : 'object-[center_18%]',
+					]}
 				/>
 			</figure>
 		)
