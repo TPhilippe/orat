@@ -11,6 +11,10 @@ export const house: House = {
 	address: ['Ruelle des Vignerons 23', '1787 Môtier (Vully)', 'Suisse'],
 	email: 'info@editions-orat.ch',
 	website: 'https://www.editions-orat.ch',
+	bank: {
+		holder: 'Éditions Orat Sàrl',
+		currency: 'CHF',
+	},
 	presentationPdf: '/documents/presentation-orat.pdf',
 	statement: [
 		'Les Éditions Orat accueillent des textes qui interrogent, éclairent et ouvrent de nouvelles perspectives sur l’existence, la conscience et le rapport au monde.',

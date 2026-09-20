@@ -1,0 +1,430 @@
+---
+import type { BankTransfer, Book } from '../types';
+import { priceLabel } from '../services/books';
+
+interface Props {
+	books: Book[];
+	email: string;
+	legalName: string;
+	bank: BankTransfer;
+}
+
+const { books, email, legalName, bank } = Astro.props;
+
+const catalog = books.map((book) => ({
+	slug: book.slug,
+	title: book.title,
+	authors: book.authors.map((author) => author.name).join(', '),
+	price: book.price ?? null,
+	currency: book.currency,
+	priceLabel: priceLabel(book),
+	status: book.status,
+	inStock: Boolean(book.inStock),
+	productId: book.productId ?? null,
+}));
+---
+
+<div id="order-root">
+	<section id="order-cart" class="border-b border-line pb-10">
+		<p class="label">Votre commande</p>
+		<ul id="order-lines" class="mt-6 divide-y divide-line"></ul>
+		<p id="order-empty" class="mt-6 font-body text-xl text-ink-muted">
+			Votre commande est vide.
+			<a href="/boutique" class="editorial-link ml-2 inline-block">La boutique</a>
+		</p>
+		<p id="order-total" class="mt-8 hidden font-serif text-2xl font-semibold"></p>
+	</section>
+
+	<form id="order-form" class="relative mt-10 hidden space-y-7" novalidate>
+		<div class="absolute -left-[9999px] h-0 w-0 overflow-hidden" aria-hidden="true">
+			<label>
+				Site web
+				<input type="text" name="website" tabindex="-1" autocomplete="off" />
+			</label>
+		</div>
+
+		<div class="grid gap-7 md:grid-cols-2">
+			<label class="block">
+				<span class="label">Prénom</span>
+				<input
+					type="text"
+					name="first_name"
+					autocomplete="given-name"
+					class="mt-2 w-full border-0 border-b border-line bg-transparent py-3 text-xl text-ink outline-none transition-colors focus:border-ink"
+				/>
+			</label>
+			<label class="block">
+				<span class="label">Nom</span>
+				<input
+					type="text"
+					name="last_name"
+					required
+					autocomplete="family-name"
+					class="mt-2 w-full border-0 border-b border-line bg-transparent py-3 text-xl text-ink outline-none transition-colors focus:border-ink"
+				/>
+			</label>
+		</div>
+
+		<div class="grid gap-7 md:grid-cols-2">
+			<label class="block">
+				<span class="label">Courriel</span>
+				<input
+					type="email"
+					name="email"
+					required
+					autocomplete="email"
+					class="mt-2 w-full border-0 border-b border-line bg-transparent py-3 text-xl text-ink outline-none transition-colors focus:border-ink"
+				/>
+			</label>
+			<label class="block">
+				<span class="label">Téléphone</span>
+				<input
+					type="tel"
+					name="phone"
+					autocomplete="tel"
+					class="mt-2 w-full border-0 border-b border-line bg-transparent py-3 text-xl text-ink outline-none transition-colors focus:border-ink"
+				/>
+			</label>
+		</div>
+
+		<label class="block">
+			<span class="label">Société</span>
+			<input
+				type="text"
+				name="company"
+				autocomplete="organization"
+				class="mt-2 w-full border-0 border-b border-line bg-transparent py-3 text-xl text-ink outline-none transition-colors focus:border-ink"
+			/>
+		</label>
+
+		<div class="grid gap-7 md:grid-cols-[1fr_6rem]">
+			<label class="block">
+				<span class="label">Rue</span>
+				<input
+					type="text"
+					name="street"
+					required
+					autocomplete="address-line1"
+					class="mt-2 w-full border-0 border-b border-line bg-transparent py-3 text-xl text-ink outline-none transition-colors focus:border-ink"
+				/>
+			</label>
+			<label class="block">
+				<span class="label">N°</span>
+				<input
+					type="text"
+					name="number"
+					autocomplete="address-line2"
+					class="mt-2 w-full border-0 border-b border-line bg-transparent py-3 text-xl text-ink outline-none transition-colors focus:border-ink"
+				/>
+			</label>
+		</div>
+
+		<div class="grid gap-7 md:grid-cols-[8rem_1fr_10rem]">
+			<label class="block">
+				<span class="label">NPA</span>
+				<input
+					type="text"
+					name="zipcode"
+					required
+					autocomplete="postal-code"
+					class="mt-2 w-full border-0 border-b border-line bg-transparent py-3 text-xl text-ink outline-none transition-colors focus:border-ink"
+				/>
+			</label>
+			<label class="block">
+				<span class="label">Ville</span>
+				<input
+					type="text"
+					name="city"
+					required
+					autocomplete="address-level2"
+					class="mt-2 w-full border-0 border-b border-line bg-transparent py-3 text-xl text-ink outline-none transition-colors focus:border-ink"
+				/>
+			</label>
+			<label class="block">
+				<span class="label">Pays</span>
+				<input
+					type="text"
+					name="country"
+					value="Suisse"
+					autocomplete="country-name"
+					class="mt-2 w-full border-0 border-b border-line bg-transparent py-3 text-xl text-ink outline-none transition-colors focus:border-ink"
+				/>
+			</label>
+		</div>
+
+		<fieldset>
+			<legend class="label">Livraison</legend>
+			<div class="mt-4 flex flex-wrap gap-6 font-body text-xl">
+				<label class="inline-flex items-center gap-2">
+					<input type="radio" name="delivery" value="ship" checked class="accent-accent" />
+					Envoi postal
+				</label>
+				<label class="inline-flex items-center gap-2">
+					<input type="radio" name="delivery" value="pickup" class="accent-accent" />
+					Retrait à Môtier
+				</label>
+			</div>
+		</fieldset>
+
+		<label class="block">
+			<span class="label">Note</span>
+			<textarea
+				name="notes"
+				rows="3"
+				class="mt-2 w-full resize-y border-0 border-b border-line bg-transparent py-3 text-xl text-ink outline-none transition-colors focus:border-ink"
+			></textarea>
+		</label>
+
+		<p class="font-body text-lg leading-relaxed text-ink-muted">
+			Le règlement se fait uniquement par virement bancaire. Dès confirmation, vous recevrez la
+			référence à indiquer sur le virement.
+		</p>
+
+		<button
+			type="submit"
+			id="order-submit"
+			class="inline-flex items-center bg-ink px-8 py-3.5 font-sans text-[0.8125rem] font-semibold tracking-[0.14em] text-paper uppercase transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+		>
+			Confirmer la commande
+		</button>
+
+		<p id="order-status" class="hidden font-body text-base text-ink-muted" role="status"></p>
+	</form>
+
+	<section id="order-thanks" class="hidden border-t border-line pt-10">
+		<p class="label">Commande enregistrée</p>
+		<h2 id="order-thanks-title" class="mt-4 font-serif text-3xl font-semibold tracking-tight md:text-4xl"></h2>
+		<div id="order-thanks-body" class="mt-6 space-y-4 font-body text-xl leading-[1.7] text-ink"></div>
+	</section>
+</div>
+
+<script type="application/json" id="order-data" set:html={JSON.stringify({ catalog, houseEmail: email, legalName, bank })} />
+
+<script>
+	import { addToCart, clearCart, readCart, setQuantity } from '../lib/cart';
+	import { placeOrder } from '../services/orders';
+
+	const data = JSON.parse(document.getElementById('order-data')?.textContent ?? '{}');
+	const { catalog = [], houseEmail, legalName, bank } = data;
+	const initialSlug = new URLSearchParams(window.location.search).get('livre');
+
+	const linesEl = document.getElementById('order-lines');
+	const emptyEl = document.getElementById('order-empty');
+	const totalEl = document.getElementById('order-total');
+	const form = document.getElementById('order-form');
+	const statusEl = document.getElementById('order-status');
+	const submit = document.getElementById('order-submit');
+	const thanks = document.getElementById('order-thanks');
+	const thanksTitle = document.getElementById('order-thanks-title');
+	const thanksBody = document.getElementById('order-thanks-body');
+
+	function bookOf(slug) {
+		return catalog.find((book) => book.slug === slug);
+	}
+
+	function isPurchase(book) {
+		return book.status === 'published' && book.inStock;
+	}
+
+	function formatAmount(amount, currency) {
+		return new Intl.NumberFormat('fr-CH', {
+			style: 'currency',
+			currency,
+			minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
+			maximumFractionDigits: 2,
+		}).format(amount);
+	}
+
+	function render() {
+		if (!linesEl || !emptyEl || !totalEl || !form) return;
+		const rows = readCart()
+			.map((item) => ({ item, book: bookOf(item.slug) }))
+			.filter((row) => row.book);
+
+		linesEl.replaceChildren();
+		emptyEl.classList.toggle('hidden', rows.length > 0);
+		form.classList.toggle('hidden', rows.length === 0);
+		totalEl.classList.toggle('hidden', rows.length === 0);
+
+		let total = 0;
+		let priced = true;
+
+		for (const { item, book } of rows) {
+			if (book.price == null) priced = false;
+			else total += book.price * item.quantity;
+
+			const title = document.createElement('p');
+			title.className = 'font-serif text-2xl font-semibold leading-snug';
+			title.textContent = book.title;
+
+			const meta = document.createElement('p');
+			meta.className = 'mt-1 font-body text-lg text-ink-muted';
+			meta.textContent = `${book.authors} · ${isPurchase(book) ? 'Achat' : 'Précommande'}`;
+
+			const info = document.createElement('div');
+			info.append(title, meta);
+
+			const qtyLabel = document.createElement('label');
+			qtyLabel.className = 'sr-only';
+			qtyLabel.htmlFor = `qty-${book.slug}`;
+			qtyLabel.textContent = 'Quantité';
+
+			const qty = document.createElement('input');
+			qty.id = `qty-${book.slug}`;
+			qty.dataset.qty = book.slug;
+			qty.type = 'number';
+			qty.min = '1';
+			qty.value = String(item.quantity);
+			qty.className =
+				'w-16 border-0 border-b border-line bg-transparent py-1 text-center text-xl outline-none focus:border-ink';
+
+			const price = document.createElement('span');
+			price.textContent = book.priceLabel;
+
+			const remove = document.createElement('button');
+			remove.type = 'button';
+			remove.dataset.remove = book.slug;
+			remove.className = 'label hover:text-ink';
+			remove.textContent = 'Retirer';
+
+			const controls = document.createElement('div');
+			controls.className = 'flex items-center gap-4 font-body text-xl';
+			controls.append(qtyLabel, qty, price, remove);
+
+			const li = document.createElement('li');
+			li.className = 'flex flex-wrap items-baseline justify-between gap-4 py-5';
+			li.append(info, controls);
+			linesEl.append(li);
+		}
+
+		totalEl.textContent = priced
+			? `Total ${formatAmount(total, rows[0]?.book.currency ?? 'CHF')}`
+			: 'Total communiqué à la commande';
+	}
+
+	if (initialSlug && bookOf(initialSlug)) {
+		const already = readCart().some((item) => item.slug === initialSlug);
+		if (!already) addToCart(initialSlug, 1);
+	}
+
+	linesEl?.addEventListener('change', (event) => {
+		const target = event.target;
+		if (!(target instanceof HTMLInputElement) || !target.dataset.qty) return;
+		const quantity = Math.max(1, Number(target.value) || 1);
+		setQuantity(target.dataset.qty, quantity);
+		render();
+	});
+
+	linesEl?.addEventListener('click', (event) => {
+		const target = event.target;
+		if (!(target instanceof HTMLElement) || !target.dataset.remove) return;
+		setQuantity(target.dataset.remove, 0);
+		render();
+	});
+
+	function showThanks(reference, source) {
+		if (!thanks || !thanksTitle || !thanksBody || !form) return;
+		form.classList.add('hidden');
+		document.getElementById('order-cart')?.classList.add('hidden');
+		thanks.classList.remove('hidden');
+		thanksTitle.textContent = `Commande ${reference}`;
+
+		const intro = document.createElement('p');
+		intro.textContent = `Merci. Le règlement se fait uniquement par virement bancaire, à l’ordre de ${legalName}.`;
+
+		const transfer = document.createElement('p');
+		transfer.className = 'whitespace-pre-line';
+		if (bank?.iban) {
+			transfer.textContent = [legalName, bank.bankName, `IBAN ${bank.iban}`, bank.bic ? `BIC ${bank.bic}` : '']
+				.filter(Boolean)
+				.join('\n');
+			const mention = document.createElement('p');
+			mention.textContent = `Mention obligatoire : ${reference}`;
+			thanksBody.replaceChildren(intro, transfer, mention);
+		} else {
+			transfer.textContent = `Les coordonnées de virement, avec la mention ${reference}, vous seront adressées par courriel.`;
+			thanksBody.replaceChildren(intro, transfer);
+		}
+
+		const followUp = document.createElement('p');
+		followUp.textContent =
+			source === 'mailto'
+				? 'Votre client de messagerie va s’ouvrir pour nous transmettre la commande.'
+				: 'La commande est enregistrée. Nous vous écrivons dès confirmation du virement.';
+		thanksBody.append(followUp);
+		clearCart();
+	}
+
+	form?.addEventListener('submit', async (event) => {
+		event.preventDefault();
+		if (!(form instanceof HTMLFormElement)) return;
+
+		const data = new FormData(form);
+		if (String(data.get('website') ?? '').trim()) return;
+
+		const rows = readCart()
+			.map((item) => ({ item, book: bookOf(item.slug) }))
+			.filter((row) => row.book);
+
+		if (!rows.length) return;
+
+		const customer = {
+			email: String(data.get('email') ?? '').trim(),
+			first_name: String(data.get('first_name') ?? '').trim(),
+			last_name: String(data.get('last_name') ?? '').trim(),
+			company: String(data.get('company') ?? '').trim(),
+			phone: String(data.get('phone') ?? '').trim(),
+			street: String(data.get('street') ?? '').trim(),
+			number: String(data.get('number') ?? '').trim(),
+			zipcode: String(data.get('zipcode') ?? '').trim(),
+			city: String(data.get('city') ?? '').trim(),
+			country: String(data.get('country') ?? '').trim() || 'Suisse',
+		};
+
+		if (!customer.email || !(customer.first_name || customer.last_name || customer.company)) {
+			if (statusEl) {
+				statusEl.textContent = 'Merci d’indiquer un nom et un courriel.';
+				statusEl.classList.remove('hidden');
+			}
+			return;
+		}
+
+		const delivery = String(data.get('delivery') ?? 'ship') === 'pickup' ? 'Retrait à Môtier' : 'Envoi postal';
+		const note = String(data.get('notes') ?? '').trim();
+		const items = rows.map(({ item, book }) => ({
+			book: {
+				slug: book.slug,
+				title: book.title,
+				status: book.status,
+				inStock: book.inStock,
+				productId: book.productId ?? undefined,
+				price: book.price ?? undefined,
+				currency: book.currency,
+			},
+			quantity: item.quantity,
+		}));
+
+		if (statusEl) {
+			statusEl.textContent = 'Envoi de la commande…';
+			statusEl.classList.remove('hidden');
+		}
+		if (submit instanceof HTMLButtonElement) submit.disabled = true;
+
+		try {
+			const result = await placeOrder({
+				customer,
+				items,
+				notes: [delivery, note].filter(Boolean).join('\n\n'),
+				houseEmail,
+			});
+			showThanks(result.id, result.source);
+		} catch (error) {
+			if (statusEl) {
+				statusEl.textContent = error instanceof Error ? error.message : 'La commande n’a pas pu être transmise.';
+			}
+			if (submit instanceof HTMLButtonElement) submit.disabled = false;
+		}
+	});
+
+	render();
+</script>

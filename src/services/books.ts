@@ -1,14 +1,18 @@
 import { books as mockBooks } from '../data/books';
 import type { Book, Collection } from '../types';
-import { apiGet, isApiEnabled } from './client';
+import { enrichBook, getCatalogProducts } from './catalog';
 
 export function formatPrice(amount: number, currency: Book['currency']): string {
 	return new Intl.NumberFormat('fr-CH', {
 		style: 'currency',
 		currency,
-		minimumFractionDigits: 0,
-		maximumFractionDigits: 0,
+		minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
+		maximumFractionDigits: 2,
 	}).format(amount);
+}
+
+export function priceLabel(book: Book): string {
+	return book.price != null ? formatPrice(book.price, book.currency) : 'Prix communiqué';
 }
 
 export function formatAuthors(book: Book): string {
@@ -21,12 +25,25 @@ export function excerpt(text: string, sentences = 2): string {
 	return parts.slice(0, sentences).join(' ').trim();
 }
 
-export async function getBooks(): Promise<Book[]> {
-	if (isApiEnabled()) {
-		return apiGet<Book[]>('/books/');
-	}
+export function isPurchase(book: Book): boolean {
+	return book.status === 'published' && Boolean(book.inStock);
+}
 
-	return mockBooks;
+export function shopLabel(book: Book): string {
+	return isPurchase(book) ? 'Acheter' : 'Précommander';
+}
+
+export function shopHref(book: Book): string {
+	return `/boutique/commande?livre=${book.slug}`;
+}
+
+export function availabilityLabel(book: Book): string {
+	return isPurchase(book) ? 'En stock' : 'Précommande';
+}
+
+export async function getBooks(): Promise<Book[]> {
+	const products = await getCatalogProducts();
+	return mockBooks.map((book) => enrichBook(book, products));
 }
 
 export async function getPublishedBooks(): Promise<Book[]> {
@@ -39,16 +56,14 @@ export async function getFeaturedBooks(): Promise<Book[]> {
 	return books.filter((book) => book.featured);
 }
 
-export async function getBookBySlug(slug: string): Promise<Book | undefined> {
-	if (isApiEnabled()) {
-		try {
-			return await apiGet<Book>(`/books/${slug}/`);
-		} catch {
-			return undefined;
-		}
-	}
+export async function getForthcomingBooks(): Promise<Book[]> {
+	const books = await getBooks();
+	return books.filter((book) => book.status === 'forthcoming');
+}
 
-	return mockBooks.find((book) => book.slug === slug);
+export async function getBookBySlug(slug: string): Promise<Book | undefined> {
+	const books = await getBooks();
+	return books.find((book) => book.slug === slug);
 }
 
 export async function getRelatedBooks(book: Book, limit = 3): Promise<Book[]> {

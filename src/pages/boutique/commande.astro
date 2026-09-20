@@ -1,0 +1,36 @@
+---
+import Container from '../../components/Container.astro';
+import OrderForm from '../../components/OrderForm.astro';
+import PageIntro from '../../components/PageIntro.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getBooks } from '../../services/books';
+import { getHouse } from '../../services/house';
+
+const books = await getBooks();
+const house = await getHouse();
+---
+
+<BaseLayout
+	title="Commande"
+	description="Précommander ou acheter un livre des Éditions Orat. Paiement par virement bancaire."
+>
+	<Container>
+		<PageIntro eyebrow="Boutique" title="Votre commande">
+			Indiquez vos coordonnées. Le règlement se fait uniquement par virement bancaire.
+		</PageIntro>
+	</Container>
+
+	<section class="py-12 md:py-16">
+		<Container>
+			<OrderForm
+				books={books}
+				email={house.email}
+				legalName={house.legalName}
+				bank={house.bank}
+			/>
+			<p class="mt-12 font-body text-lg text-ink-muted">
+				<a href="/boutique" class="editorial-link">Continuer vos achats</a>
+			</p>
+		</Container>
+	</section>
+</BaseLayout>

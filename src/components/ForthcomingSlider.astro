@@ -1,0 +1,201 @@
+---
+import type { Book } from '../types';
+import { excerpt, formatAuthors, shopHref, shopLabel } from '../services/books';
+import BookCover from './BookCover.astro';
+
+interface Props {
+	books: Book[];
+}
+
+const { books } = Astro.props;
+const multiple = books.length > 1;
+---
+
+{
+	books.length > 0 && (
+		<div
+			class="grid items-start justify-items-center gap-8 text-center lg:grid-cols-[16rem_minmax(0,1fr)] lg:justify-items-start lg:gap-16 lg:text-left xl:grid-cols-[18rem_minmax(0,1fr)]"
+			data-forthcoming
+		>
+			<div class="w-full max-w-[16rem] lg:max-w-none">
+				<div
+					class="book-forthcoming-rail hide-scrollbar flex aspect-[2/3] snap-x snap-mandatory overflow-x-auto overflow-y-hidden border border-line touch-pan-x"
+					data-rail
+				>
+					{books.map((book) => (
+						<figure class="min-w-full shrink-0 basis-full snap-center snap-always">
+							<a href={`/livres/${book.slug}`} class="block h-full" aria-label={book.title}>
+								<BookCover book={book} size="hero" class="h-full" />
+							</a>
+						</figure>
+					))}
+				</div>
+
+				{
+					multiple && (
+						<div class="mt-3 flex items-center justify-center gap-2">
+							<button
+								type="button"
+								class="grid size-9 place-items-center text-ink-muted transition-colors hover:text-ink"
+								data-prev
+								aria-label="Titre précédent"
+							>
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="size-4" fill="none" aria-hidden="true">
+									<path d="M10.5 3.5 5.5 8l5 4.5" stroke="currentColor" stroke-width="1.2" />
+								</svg>
+							</button>
+							<div class="flex items-center gap-1.5" aria-hidden="true">
+								{books.map((_, index) => (
+									<span
+										class:list={['size-1 rounded-full transition-colors', index === 0 ? 'bg-ink' : 'bg-line']}
+										data-dot
+									/>
+								))}
+							</div>
+							<button
+								type="button"
+								class="grid size-9 place-items-center text-ink-muted transition-colors hover:text-ink"
+								data-next
+								aria-label="Titre suivant"
+							>
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="size-4" fill="none" aria-hidden="true">
+									<path d="M5.5 3.5 10.5 8l-5 4.5" stroke="currentColor" stroke-width="1.2" />
+								</svg>
+							</button>
+						</div>
+					)
+				}
+			</div>
+
+			<div class="relative w-full max-w-2xl lg:pt-1">
+				{books.map((book, index) => {
+					const authors = formatAuthors(book);
+					const lead = excerpt(book.synopsis, 2);
+
+					return (
+						<article
+							class:list={['w-full', index > 0 && 'hidden']}
+							data-panel
+						>
+							<p class="label">{book.collection.name}</p>
+							<h2 class="mt-4 font-serif text-3xl font-semibold leading-[1.12] tracking-tight md:text-5xl">
+								<a href={`/livres/${book.slug}`} class="hover:text-accent">
+									{book.title}
+								</a>
+							</h2>
+							{book.subtitle && (
+								<p class="mt-3 font-body text-xl leading-snug text-ink-muted">{book.subtitle}</p>
+							)}
+							<p class="mt-3 font-body text-xl text-ink">{authors}</p>
+							<p class="mt-6 font-body text-xl leading-[1.7] text-ink">{lead}</p>
+							<div class="mt-8 flex flex-wrap items-center justify-center gap-8 lg:justify-start">
+								<a href={`/livres/${book.slug}`} class="editorial-link inline-block">
+									Lire
+								</a>
+								<a href={shopHref(book)} class="editorial-link inline-block">
+									{shopLabel(book)}
+								</a>
+							</div>
+						</article>
+					);
+				})}
+			</div>
+		</div>
+	)
+}
+
+<script>
+	const INTERVAL_MS = 5000;
+
+	function setupSlider(root: HTMLElement) {
+		const rail = root.querySelector<HTMLElement>('[data-rail]');
+		const prev = root.querySelector<HTMLButtonElement>('[data-prev]');
+		const next = root.querySelector<HTMLButtonElement>('[data-next]');
+		const dots = [...root.querySelectorAll<HTMLElement>('[data-dot]')];
+		const panels = [...root.querySelectorAll<HTMLElement>('[data-panel]')];
+		if (!rail || panels.length < 2) return;
+
+		const slideCount = rail.children.length;
+		const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		let timer: number | undefined;
+		let hovering = false;
+
+		function index() {
+			if (!rail) return 0;
+			const width = rail.clientWidth || 1;
+			return Math.round(rail.scrollLeft / width);
+		}
+
+		function go(target: number) {
+			if (!rail) return;
+			const current = index();
+			const wrapped = ((target % slideCount) + slideCount) % slideCount;
+			const wrapping = (current === slideCount - 1 && wrapped === 0) || (current === 0 && wrapped === slideCount - 1);
+			rail.scrollTo({
+				left: wrapped * rail.clientWidth,
+				behavior: reduceMotion || wrapping ? 'auto' : 'smooth',
+			});
+		}
+
+		function sync() {
+			const i = index();
+			dots.forEach((dot, dotIndex) => {
+				dot.classList.toggle('bg-ink', dotIndex === i);
+				dot.classList.toggle('bg-line', dotIndex !== i);
+			});
+			panels.forEach((panel, panelIndex) => {
+				panel.classList.toggle('hidden', panelIndex !== i);
+			});
+		}
+
+		function stop() {
+			if (timer !== undefined) {
+				window.clearInterval(timer);
+				timer = undefined;
+			}
+		}
+
+		function play() {
+			stop();
+			if (reduceMotion || hovering || slideCount < 2) return;
+			timer = window.setInterval(() => go(index() + 1), INTERVAL_MS);
+		}
+
+		prev?.addEventListener('click', () => {
+			go(index() - 1);
+			play();
+		});
+		next?.addEventListener('click', () => {
+			go(index() + 1);
+			play();
+		});
+		rail.addEventListener('scroll', () => requestAnimationFrame(sync), { passive: true });
+		root.addEventListener('pointerenter', () => {
+			hovering = true;
+			stop();
+		});
+		root.addEventListener('pointerleave', () => {
+			hovering = false;
+			play();
+		});
+		root.addEventListener('focusin', () => {
+			hovering = true;
+			stop();
+		});
+		root.addEventListener('focusout', (event) => {
+			if (!root.contains(event.relatedTarget as Node | null)) {
+				hovering = false;
+				play();
+			}
+		});
+		document.addEventListener('visibilitychange', () => {
+			if (document.hidden) stop();
+			else play();
+		});
+
+		sync();
+		play();
+	}
+
+	document.querySelectorAll<HTMLElement>('[data-forthcoming]').forEach(setupSlider);
+</script>

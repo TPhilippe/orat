@@ -34,12 +34,41 @@ export type Book = {
 	previousEdition?: string;
 	status: BookStatus;
 	featured?: boolean;
+	/** Identifiant ProductVariant de l’API Cave, une fois le livre au catalogue public. */
+	productId?: number;
+	/** Signal booléen issu de Cave (`in_stock`). Jamais la quantité exacte. */
+	inStock?: boolean;
 	cover: {
 		background: string;
 		foreground: string;
 		front?: string;
 		back?: string;
 	};
+};
+
+export type CatalogProduct = {
+	id: number;
+	name: string;
+	description: string;
+	price: number | null;
+	in_stock: boolean;
+	image_url: string | null;
+	categories: string[];
+	attributes: { attribute: string; value: string }[];
+};
+
+export type OrderConfirmation = {
+	id: number;
+	status: string;
+	date: string;
+};
+
+export type BankTransfer = {
+	holder: string;
+	iban?: string;
+	bic?: string;
+	bankName?: string;
+	currency: Currency;
 };
 
 export type Founder = {
@@ -69,6 +98,7 @@ export type House = {
 	email: string;
 	website: string;
 	phone?: string;
+	bank: BankTransfer;
 	presentationPdf: string;
 	statement: string[];
 	history: string[];

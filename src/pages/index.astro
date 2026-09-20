@@ -1,23 +1,22 @@
 ---
 import BookGrid from '../components/BookGrid.astro';
 import Container from '../components/Container.astro';
-import FeaturedBook from '../components/FeaturedBook.astro';
+import ForthcomingSlider from '../components/ForthcomingSlider.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { site } from '../data/site';
-import { getFeaturedBooks, getBooks } from '../services/books';
+import { getBooks, getForthcomingBooks } from '../services/books';
 import { getHouse } from '../services/house';
 
 const house = await getHouse();
-const featured = await getFeaturedBooks();
+const forthcoming = await getForthcomingBooks();
 const books = await getBooks();
-const hero = featured[0] ?? books[0];
-const others = books.filter((book) => book.id !== hero?.id);
+const others = books.filter((book) => book.id !== forthcoming[0]?.id);
 ---
 
 <BaseLayout title={site.name} description={site.description}>
 	<section>
 		<Container wide class="pb-12 pt-12 md:pb-16 md:pt-16">
-			<p class="label">Maison d’édition · {house.city}</p>
+			<p class="label">Maison d’édition</p>
 			<h1
 				class="mt-5 max-w-5xl font-serif text-4xl font-semibold leading-[1.12] tracking-tight text-ink md:text-6xl lg:text-7xl"
 			>
@@ -30,11 +29,11 @@ const others = books.filter((book) => book.id !== hero?.id);
 	</section>
 
 	{
-		hero && (
+		forthcoming.length > 0 && (
 			<section class="border-t border-line">
 				<Container wide class="py-12 md:py-16">
 					<p class="label mb-8">À paraître · janvier–mars 2027</p>
-					<FeaturedBook book={hero} />
+					<ForthcomingSlider books={forthcoming} />
 				</Container>
 			</section>
 		)

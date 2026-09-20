@@ -1,0 +1,43 @@
+---
+import Container from '../../components/Container.astro';
+import PageIntro from '../../components/PageIntro.astro';
+import ShopBookCard from '../../components/ShopBookCard.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getBooks } from '../../services/books';
+
+const books = await getBooks();
+---
+
+<BaseLayout
+	title="Boutique"
+	description="Précommander ou acheter les livres des Éditions Orat. Règlement par virement bancaire."
+>
+	<Container wide>
+		<PageIntro eyebrow="Boutique" title="Commander">
+			Chaque titre se précommande ou s’achète selon sa disponibilité. Le règlement se fait
+			uniquement par virement bancaire.
+		</PageIntro>
+	</Container>
+
+	<section class="py-12 md:py-16">
+		<Container wide>
+			<div class="mb-10 flex flex-wrap items-baseline justify-between gap-4">
+				<p class="label">Les titres</p>
+				<a id="cart-link" href="/boutique/commande" class="editorial-link hidden">Voir la commande</a>
+			</div>
+			<div class="grid gap-x-10 gap-y-14 sm:grid-cols-2 lg:grid-cols-3 lg:gap-x-14 lg:gap-y-16">
+				{books.map((book) => <ShopBookCard book={book} />)}
+			</div>
+		</Container>
+	</section>
+</BaseLayout>
+
+<script>
+	import { cartCount, readCart } from '../../lib/cart';
+
+	const link = document.getElementById('cart-link');
+	if (link && cartCount(readCart()) > 0) {
+		link.classList.remove('hidden');
+		link.textContent = `Voir la commande (${cartCount()})`;
+	}
+</script>

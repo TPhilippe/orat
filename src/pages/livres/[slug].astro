@@ -10,8 +10,9 @@ import {
 	getBookBySlug,
 	getBooks,
 	getRelatedBooks,
+	shopHref,
+	shopLabel,
 } from '../../services/books';
-import { getHouse } from '../../services/house';
 
 export async function getStaticPaths() {
 	const books = await getBooks();
@@ -27,10 +28,8 @@ if (!book) {
 	return new Response(null, { status: 404, statusText: 'Not Found' });
 }
 
-const house = await getHouse();
 const related = await getRelatedBooks(book);
 const authors = formatAuthors(book);
-const orderHref = `mailto:${house.email}?subject=${encodeURIComponent(`Ouvrage — ${book.title}`)}`;
 
 const facts = [
 	{ label: 'Collection', value: book.collection.name },
@@ -77,8 +76,8 @@ const facts = [
 				</dl>
 
 				<div class="mt-10 flex flex-wrap items-center justify-center gap-8 lg:justify-start">
-					<ButtonLink href={orderHref}>Écrire à la maison</ButtonLink>
-					<ButtonLink href="/catalogue">Le catalogue</ButtonLink>
+					<ButtonLink href={shopHref(book)} variant="solid">{shopLabel(book)}</ButtonLink>
+					<ButtonLink href="/boutique">La boutique</ButtonLink>
 				</div>
 			</div>
 		</div>
