@@ -73,7 +73,7 @@ export const collections: Collection[] = [
 		id: 'recits',
 		slug: 'recits',
 		name: 'Récits',
-		description: 'Récits de vie, voyages initiatiques, fantastique intérieur.',
+		description: 'Récits de vie, voyages initiatiques.',
 	},
 	{
 		id: 'essais',

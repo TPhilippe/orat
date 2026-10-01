@@ -14,7 +14,7 @@ const multiple = books.length > 1;
 {
 	books.length > 0 && (
 		<div
-			class="grid items-start justify-items-center gap-8 text-center lg:grid-cols-[16rem_minmax(0,1fr)] lg:justify-items-start lg:gap-16 lg:text-left xl:grid-cols-[18rem_minmax(0,1fr)]"
+			class="forthcoming-slider grid items-start justify-items-center gap-8 text-center lg:grid-cols-[16rem_minmax(0,1fr)] lg:justify-items-start lg:gap-16 lg:text-left xl:grid-cols-[18rem_minmax(0,1fr)]"
 			data-forthcoming
 		>
 			<div class="w-full max-w-[16rem] lg:max-w-none">
@@ -126,14 +126,14 @@ const multiple = books.length > 1;
 			return Math.round(rail.scrollLeft / width);
 		}
 
-		function go(target: number) {
+		function go(target: number, instant = false) {
 			if (!rail) return;
 			const current = index();
 			const wrapped = ((target % slideCount) + slideCount) % slideCount;
 			const wrapping = (current === slideCount - 1 && wrapped === 0) || (current === 0 && wrapped === slideCount - 1);
 			rail.scrollTo({
 				left: wrapped * rail.clientWidth,
-				behavior: reduceMotion || wrapping ? 'auto' : 'smooth',
+				behavior: instant || reduceMotion || wrapping ? 'auto' : 'smooth',
 			});
 		}
 
@@ -193,9 +193,28 @@ const multiple = books.length > 1;
 			else play();
 		});
 
+		go(Math.floor(Math.random() * slideCount), true);
 		sync();
+		root.dataset.ready = 'true';
 		play();
 	}
 
-	document.querySelectorAll<HTMLElement>('[data-forthcoming]').forEach(setupSlider);
+	document.querySelectorAll<HTMLElement>('[data-forthcoming]').forEach((root) => {
+		setupSlider(root);
+		root.dataset.ready = 'true';
+	});
 </script>
+
+<style>
+	.forthcoming-slider:not([data-ready]) {
+		opacity: 0;
+	}
+</style>
+
+<noscript>
+	<style>
+		.forthcoming-slider:not([data-ready]) {
+			opacity: 1;
+		}
+	</style>
+</noscript>

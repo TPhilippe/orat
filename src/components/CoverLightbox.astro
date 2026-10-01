@@ -1,0 +1,230 @@
+<dialog
+	class="cover-lightbox m-0 h-full max-h-none w-full max-w-none bg-transparent p-0"
+	data-cover-lightbox
+	aria-label="Couverture agrandie"
+>
+	<div class="relative flex min-h-full items-center justify-center px-4 py-16 md:px-10">
+		<button
+			type="button"
+			class="absolute right-4 top-4 z-10 font-sans text-[0.75rem] font-semibold tracking-[0.14em] text-paper/80 uppercase transition-colors hover:text-paper md:right-8 md:top-6"
+			data-close
+		>
+			Fermer
+		</button>
+
+		<button
+			type="button"
+			class="absolute left-3 top-1/2 z-10 hidden size-10 -translate-y-1/2 place-items-center text-paper/70 transition-colors hover:text-paper md:left-6"
+			data-prev
+			aria-label="Couverture précédente"
+		>
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="size-5" fill="none" aria-hidden="true">
+				<path d="M10.5 3.5 5.5 8l5 4.5" stroke="currentColor" stroke-width="1.2" />
+			</svg>
+		</button>
+		<button
+			type="button"
+			class="absolute right-3 top-1/2 z-10 hidden size-10 -translate-y-1/2 place-items-center text-paper/70 transition-colors hover:text-paper md:right-6"
+			data-next
+			aria-label="Couverture suivante"
+		>
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="size-5" fill="none" aria-hidden="true">
+				<path d="M5.5 3.5 10.5 8l-5 4.5" stroke="currentColor" stroke-width="1.2" />
+			</svg>
+		</button>
+
+		<figure class="max-h-[88dvh] max-w-[min(92vw,46rem)] touch-none">
+			<img
+				alt=""
+				width="1045"
+				height="1567"
+				class="max-h-[88dvh] w-auto max-w-full object-contain select-none"
+				data-image
+				draggable="false"
+			/>
+		</figure>
+	</div>
+</dialog>
+
+<style>
+	.cover-lightbox[open] {
+		display: block;
+		touch-action: none;
+		overscroll-behavior: none;
+	}
+
+	.cover-lightbox::backdrop {
+		background: rgb(27 24 20 / 0.88);
+	}
+</style>
+
+<script>
+	type Face = { src: string; alt: string };
+
+	const dialog = document.querySelector<HTMLDialogElement>('[data-cover-lightbox]');
+	if (dialog) {
+		const image = dialog.querySelector<HTMLImageElement>('[data-image]');
+		const closeBtn = dialog.querySelector<HTMLButtonElement>('[data-close]');
+		const prevBtn = dialog.querySelector<HTMLButtonElement>('[data-prev]');
+		const nextBtn = dialog.querySelector<HTMLButtonElement>('[data-next]');
+
+		let faces: Face[] = [];
+		let index = 0;
+		let pointerId: number | null = null;
+		let originX = 0;
+		let originY = 0;
+		let deltaX = 0;
+		let swiped = false;
+		let wheelAcc = 0;
+		let wheelLock = false;
+		let wheelTimer: number | undefined;
+
+		function wrap(next: number) {
+			if (!faces.length) return 0;
+			return ((next % faces.length) + faces.length) % faces.length;
+		}
+
+		function syncNav() {
+			const many = faces.length > 1;
+			prevBtn?.classList.toggle('grid', many);
+			prevBtn?.classList.toggle('hidden', !many);
+			nextBtn?.classList.toggle('grid', many);
+			nextBtn?.classList.toggle('hidden', !many);
+		}
+
+		function showFace(next: number) {
+			if (!image || !faces.length) return;
+			index = wrap(next);
+			const face = faces[index];
+			if (!face) return;
+			image.src = face.src;
+			image.alt = face.alt;
+			image.style.transition = 'none';
+			image.style.transform = '';
+			syncNav();
+		}
+
+		function setOffset(x: number, animate = false) {
+			if (!image) return;
+			image.style.transition = animate ? 'transform 220ms ease' : 'none';
+			image.style.transform = x ? `translateX(${x}px)` : '';
+		}
+
+		function open(detail: { faces: Face[]; index: number }) {
+			faces = detail.faces;
+			wheelAcc = 0;
+			wheelLock = false;
+			showFace(detail.index);
+			if (!dialog.open) dialog.showModal();
+			document.documentElement.classList.add('overflow-hidden');
+			closeBtn?.focus();
+		}
+
+		function close() {
+			pointerId = null;
+			dialog.close();
+			document.documentElement.classList.remove('overflow-hidden');
+		}
+
+		document.addEventListener('orat:cover-zoom', ((event: CustomEvent<{ faces: Face[]; index: number }>) => {
+			open(event.detail);
+		}) as EventListener);
+
+		closeBtn?.addEventListener('click', close);
+		dialog.addEventListener('click', (event) => {
+			if (swiped) {
+				swiped = false;
+				return;
+			}
+			if (event.target === dialog || event.target === dialog.firstElementChild) close();
+		});
+		dialog.addEventListener('close', () => {
+			document.documentElement.classList.remove('overflow-hidden');
+		});
+
+		prevBtn?.addEventListener('click', (event) => {
+			event.stopPropagation();
+			showFace(index - 1);
+		});
+		nextBtn?.addEventListener('click', (event) => {
+			event.stopPropagation();
+			showFace(index + 1);
+		});
+
+		dialog.addEventListener('keydown', (event) => {
+			if (event.key === 'ArrowLeft') {
+				event.preventDefault();
+				showFace(index - 1);
+			}
+			if (event.key === 'ArrowRight') {
+				event.preventDefault();
+				showFace(index + 1);
+			}
+		});
+
+		dialog.addEventListener('pointerdown', (event) => {
+			if ((event.target as HTMLElement).closest('button')) return;
+			pointerId = event.pointerId;
+			originX = event.clientX;
+			originY = event.clientY;
+			deltaX = 0;
+			swiped = false;
+			dialog.setPointerCapture(event.pointerId);
+		});
+
+		dialog.addEventListener(
+			'pointermove',
+			(event) => {
+				if (pointerId !== event.pointerId || faces.length < 2) return;
+				deltaX = event.clientX - originX;
+				const deltaY = event.clientY - originY;
+				if (Math.abs(deltaX) < Math.abs(deltaY)) return;
+				event.preventDefault();
+				setOffset(deltaX);
+			},
+			{ passive: false },
+		);
+
+		function endPointer(event: PointerEvent) {
+			if (pointerId !== event.pointerId) return;
+			pointerId = null;
+			const deltaY = event.clientY - originY;
+			const threshold = Math.min(56, (image?.clientWidth || 280) * 0.12);
+			if (faces.length > 1 && Math.abs(deltaX) > threshold && Math.abs(deltaX) > Math.abs(deltaY)) {
+				swiped = true;
+				showFace(index + (deltaX < 0 ? 1 : -1));
+			} else {
+				setOffset(0, true);
+			}
+			deltaX = 0;
+		}
+
+		dialog.addEventListener('pointerup', endPointer);
+		dialog.addEventListener('pointercancel', endPointer);
+
+		dialog.addEventListener(
+			'wheel',
+			(event) => {
+				if (!dialog.open || faces.length < 2) return;
+				const absX = Math.abs(event.deltaX);
+				const absY = Math.abs(event.deltaY);
+				if (absX < 6 || absX < absY) return;
+				event.preventDefault();
+				if (wheelLock) return;
+				wheelAcc += event.deltaX;
+				if (Math.abs(wheelAcc) < 48) return;
+				showFace(index + (wheelAcc > 0 ? 1 : -1));
+				wheelAcc = 0;
+				wheelLock = true;
+				window.setTimeout(() => {
+					wheelLock = false;
+				}, 380);
+				window.clearTimeout(wheelTimer);
+				wheelTimer = window.setTimeout(() => {
+					wheelAcc = 0;
+				}, 180);
+			},
+			{ passive: false },
+		);
+	}
+</script>

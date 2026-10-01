@@ -21,19 +21,26 @@ const labels = ['Première de couverture', 'Quatrième de couverture'];
 			tabindex="0"
 		>
 			<div
-				class="book-jacket-rail hide-scrollbar flex aspect-[2/3] snap-x snap-mandatory overflow-x-auto overflow-y-hidden border border-line touch-pan-x"
+				class="book-jacket-rail hide-scrollbar flex aspect-[2/3] cursor-zoom-in snap-x snap-mandatory overflow-x-auto overflow-y-hidden border border-line touch-pan-x"
 				data-rail
 			>
 				{faces.map((src, index) => (
 					<figure class="min-w-full shrink-0 basis-full snap-center snap-always">
-						<img
-							src={src}
-							alt={`${labels[index]} — ${book.title}`}
-							width="800"
-							height="1200"
-							class="h-full w-full object-cover"
-							draggable="false"
-						/>
+						<button
+							type="button"
+							class="block h-full w-full cursor-zoom-in border-0 bg-transparent p-0"
+							data-zoom
+							aria-label={`Agrandir ${labels[index]} — ${book.title}`}
+						>
+							<img
+								src={src}
+								alt={`${labels[index]} — ${book.title}`}
+								width="800"
+								height="1200"
+								class="h-full w-full object-cover"
+								draggable="false"
+							/>
+						</button>
 					</figure>
 				))}
 			</div>
@@ -78,12 +85,49 @@ const labels = ['Première de couverture', 'Quatrième de couverture'];
 			</div>
 		</div>
 	) : (
-		<BookCover book={book} size={size} />
+		<div class="cursor-zoom-in" data-jacket>
+			<button
+				type="button"
+				class="block w-full cursor-zoom-in border-0 bg-transparent p-0"
+				data-zoom
+				aria-label={`Agrandir la couverture — ${book.title}`}
+			>
+				<BookCover book={book} size={size} />
+			</button>
+		</div>
 	)
 }
 
 <script>
 	const labels = ['Première de couverture', 'Quatrième de couverture'];
+
+	function facesFrom(root: HTMLElement) {
+		return [...root.querySelectorAll<HTMLImageElement>('img')]
+			.map((img) => {
+				const src = img.currentSrc || img.getAttribute('src') || '';
+				return src ? { src, alt: img.alt } : null;
+			})
+			.filter((face): face is { src: string; alt: string } => Boolean(face));
+	}
+
+	function openZoom(root: HTMLElement, localIndex: number) {
+		const jackets = [...document.querySelectorAll<HTMLElement>('[data-jacket]')];
+		const faces: { src: string; alt: string }[] = [];
+		let start = localIndex;
+
+		jackets.forEach((jacket) => {
+			const jacketFaces = facesFrom(jacket);
+			if (jacket === root) start = faces.length + localIndex;
+			faces.push(...jacketFaces);
+		});
+
+		if (!faces.length) return;
+		document.dispatchEvent(
+			new CustomEvent('orat:cover-zoom', {
+				detail: { faces, index: Math.max(0, Math.min(faces.length - 1, start)) },
+			}),
+		);
+	}
 
 	function setupJacket(root: HTMLElement) {
 		const rail = root.querySelector<HTMLElement>('[data-rail]');
@@ -91,6 +135,28 @@ const labels = ['Première de couverture', 'Quatrième de couverture'];
 		const next = root.querySelector<HTMLButtonElement>('[data-next]');
 		const caption = root.querySelector<HTMLElement>('[data-caption]');
 		const dots = [...root.querySelectorAll<HTMLElement>('[data-dot]')];
+		const zooms = [...root.querySelectorAll<HTMLButtonElement>('[data-zoom]')];
+		let pointer = { x: 0, y: 0, moved: false };
+
+		root.addEventListener('pointerdown', (event) => {
+			pointer = { x: event.clientX, y: event.clientY, moved: false };
+		});
+		root.addEventListener('pointermove', (event) => {
+			if (Math.hypot(event.clientX - pointer.x, event.clientY - pointer.y) > 8) {
+				pointer.moved = true;
+			}
+		});
+
+		zooms.forEach((button, zoomIndex) => {
+			button.addEventListener('click', (event) => {
+				if (pointer.moved) {
+					event.preventDefault();
+					return;
+				}
+				openZoom(root, rail ? Math.round((rail.scrollLeft / (rail.clientWidth || 1))) : zoomIndex);
+			});
+		});
+
 		if (!rail || !prev || !next) return;
 
 		const slideCount = rail.children.length;
@@ -122,8 +188,14 @@ const labels = ['Première de couverture', 'Quatrième de couverture'];
 			});
 		}
 
-		prev.addEventListener('click', () => go(index() - 1));
-		next.addEventListener('click', () => go(index() + 1));
+		prev.addEventListener('click', (event) => {
+			event.stopPropagation();
+			go(index() - 1);
+		});
+		next.addEventListener('click', (event) => {
+			event.stopPropagation();
+			go(index() + 1);
+		});
 		rail.addEventListener('scroll', () => requestAnimationFrame(sync), { passive: true });
 		root.addEventListener('keydown', (event) => {
 			if (event.key === 'ArrowLeft') {
