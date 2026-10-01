@@ -5,9 +5,10 @@ import BookCard from './BookCard.astro';
 interface Props {
 	books: Book[];
 	random?: number;
+	shop?: boolean;
 }
 
-const { books, random } = Astro.props;
+const { books, random, shop = false } = Astro.props;
 const columns = random === 4 ? 'sm:grid-cols-2 xl:grid-cols-4' : 'sm:grid-cols-2 lg:grid-cols-3';
 ---
 
@@ -19,10 +20,10 @@ const columns = random === 4 ? 'sm:grid-cols-2 xl:grid-cols-4' : 'sm:grid-cols-2
 		books.map((book) =>
 			random ? (
 				<div data-random-item>
-					<BookCard book={book} />
+					<BookCard book={book} shop={shop} />
 				</div>
 			) : (
-				<BookCard book={book} />
+				<BookCard book={book} shop={shop} />
 			),
 		)
 	}

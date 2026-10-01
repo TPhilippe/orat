@@ -1,14 +1,16 @@
 ---
 import type { Book } from '../types';
-import { formatAuthors } from '../services/books';
+import { availabilityLabel, formatAuthors, priceLabel, shopHref, shopLabel } from '../services/books';
 import BookJacket from './BookJacket.astro';
+import ButtonLink from './ButtonLink.astro';
 
 interface Props {
 	book: Book;
 	size?: 'default' | 'hero';
+	shop?: boolean;
 }
 
-const { book, size = 'default' } = Astro.props;
+const { book, size = 'default', shop = false } = Astro.props;
 const authors = formatAuthors(book);
 ---
 
@@ -16,15 +18,38 @@ const authors = formatAuthors(book);
 	<div class="w-full max-w-[13.5rem]">
 		<BookJacket book={book} size={size} />
 	</div>
-	<a href={`/livres/${book.slug}`} class="group mt-4 block w-full max-w-[13.5rem]">
-		<h2
-			class:list={[
-				'font-serif font-semibold leading-snug tracking-tight text-ink group-hover:text-accent',
-				size === 'hero' ? 'text-2xl md:text-3xl' : 'text-xl md:text-2xl',
-			]}
-		>
-			{book.title}
-		</h2>
-		<p class="mt-1.5 font-body text-lg text-ink-muted">{authors}</p>
-	</a>
+	{
+		shop ? (
+			<div class="mt-4 w-full max-w-[16rem]">
+				<p class="label">{availabilityLabel(book)}</p>
+				<h2
+					class:list={[
+						'mt-2 font-serif font-semibold leading-snug tracking-tight',
+						size === 'hero' ? 'text-2xl md:text-3xl' : 'text-xl md:text-2xl',
+					]}
+				>
+					<a href={`/livres/${book.slug}`} class="hover:text-accent">
+						{book.title}
+					</a>
+				</h2>
+				<p class="mt-1.5 font-body text-lg text-ink-muted">{authors}</p>
+				<p class="mt-3 font-body text-xl">{priceLabel(book)}</p>
+				<ButtonLink href={shopHref(book)} class="mt-5">
+					{shopLabel(book)}
+				</ButtonLink>
+			</div>
+		) : (
+			<a href={`/livres/${book.slug}`} class="group mt-4 block w-full max-w-[13.5rem]">
+				<h2
+					class:list={[
+						'font-serif font-semibold leading-snug tracking-tight text-ink group-hover:text-accent',
+						size === 'hero' ? 'text-2xl md:text-3xl' : 'text-xl md:text-2xl',
+					]}
+				>
+					{book.title}
+				</h2>
+				<p class="mt-1.5 font-body text-lg text-ink-muted">{authors}</p>
+			</a>
+		)
+	}
 </article>

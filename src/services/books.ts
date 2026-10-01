@@ -34,7 +34,7 @@ export function shopLabel(book: Book): string {
 }
 
 export function shopHref(book: Book): string {
-	return `/boutique/commande?livre=${book.slug}`;
+	return `/catalogue/commande?livre=${book.slug}`;
 }
 
 export function availabilityLabel(book: Book): string {

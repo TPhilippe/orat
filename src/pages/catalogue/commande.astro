@@ -15,7 +15,7 @@ const house = await getHouse();
 	description="Précommander ou acheter un livre des Éditions Orat. Paiement par virement bancaire."
 >
 	<Container>
-		<PageIntro eyebrow="Boutique" title="Votre commande">
+		<PageIntro eyebrow="Catalogue" title="Votre commande">
 			Indiquez vos coordonnées. Le règlement se fait uniquement par virement bancaire.
 		</PageIntro>
 	</Container>
@@ -29,7 +29,7 @@ const house = await getHouse();
 				bank={house.bank}
 			/>
 			<p class="mt-12 font-body text-lg text-ink-muted">
-				<a href="/boutique" class="editorial-link">Continuer vos achats</a>
+				<a href="/catalogue" class="editorial-link">Continuer vos achats</a>
 			</p>
 		</Container>
 	</section>

@@ -7,7 +7,7 @@ const current = pathname.endsWith('/') && pathname !== '/' ? pathname.slice(0, -
 function isActive(href: string) {
 	if (href === '/') return current === '/';
 	if (href === '/catalogue') {
-		return current === '/catalogue' || current.startsWith('/livres/');
+		return current === '/catalogue' || current.startsWith('/catalogue/') || current.startsWith('/livres/');
 	}
 	return current === href || current.startsWith(`${href}/`);
 }

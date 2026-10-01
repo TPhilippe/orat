@@ -12,24 +12,28 @@ const books = await getBooks();
 
 <BaseLayout
 	title="Catalogue"
-	description="Le catalogue des Éditions Orat : récits et essais. Premières parutions, mai 2027."
+	description="Le catalogue des Éditions Orat : récits et essais. Premières parutions, mai 2027. Précommande par virement bancaire."
 >
 	<Container wide>
 		<PageIntro eyebrow="Catalogue" title="Les livres" rule={false}>
-			Premières parutions, mai 2027. Récits de vie, essais, voyages intérieurs.
+			Premières parutions, mai 2027. Récits de vie, essais, voyages intérieurs. Chaque titre se
+			précommande par virement bancaire.
 		</PageIntro>
 	</Container>
 
 	<nav class="border-y border-line" aria-label="Collections">
 		<Container wide>
-			<div class="flex flex-wrap gap-x-8 gap-y-3 py-5 md:py-6">
-				{
-					collections.map((collection) => (
-						<a href={`#${collection.slug}`} class="label hover:text-ink">
-							{collection.name}
-						</a>
-					))
-				}
+			<div class="flex flex-wrap items-center justify-between gap-x-8 gap-y-3 py-5 md:py-6">
+				<div class="flex flex-wrap gap-x-8 gap-y-3">
+					{
+						collections.map((collection) => (
+							<a href={`#${collection.slug}`} class="label hover:text-ink">
+								{collection.name}
+							</a>
+						))
+					}
+				</div>
+				<a id="cart-link" href="/catalogue/commande" class="editorial-link hidden">Voir la commande</a>
 			</div>
 		</Container>
 	</nav>
@@ -49,10 +53,20 @@ const books = await getBooks();
 							<h2 class="font-serif text-3xl font-semibold tracking-tight md:text-4xl">{collection.name}</h2>
 							<p class="mt-3 font-body text-xl text-ink">{collection.description}</p>
 						</div>
-						<BookGrid books={titles} />
+						<BookGrid books={titles} shop />
 					</Container>
 				</section>
 			);
 		})
 	}
 </BaseLayout>
+
+<script>
+	import { cartCount, readCart } from '../lib/cart';
+
+	const link = document.getElementById('cart-link');
+	if (link && cartCount(readCart()) > 0) {
+		link.classList.remove('hidden');
+		link.textContent = `Voir la commande (${cartCount()})`;
+	}
+</script>
