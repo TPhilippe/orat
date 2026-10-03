@@ -53,13 +53,19 @@ const house = await getHouse();
 	</section>
 
 	<section class="border-t border-line py-12 md:py-16">
-		<Container narrow>
-			<p class="label">Présentation</p>
-			<p class="mt-4 max-w-xl font-body text-xl leading-relaxed text-ink">
-				La présentation 2026 de la maison : ligne éditoriale, fondateurs, points forts et premières parutions.
-			</p>
-			<div class="mt-6">
-				<ButtonLink href={house.presentationPdf}>Télécharger le PDF</ButtonLink>
+		<Container wide>
+			<p class="label mb-8">Présentation</p>
+			<div class="grid items-start gap-6 md:grid-cols-[13rem_minmax(0,1fr)] md:gap-10">
+				<div class="hidden md:block" aria-hidden="true"></div>
+				<div>
+					<p class="font-body text-xl leading-[1.7] text-ink">
+						La présentation 2026 de la maison : ligne éditoriale, fondateurs, points forts et premières
+						parutions.
+					</p>
+					<div class="mt-6">
+						<ButtonLink href={house.presentationPdf}>Télécharger le PDF</ButtonLink>
+					</div>
+				</div>
 			</div>
 		</Container>
 	</section>
