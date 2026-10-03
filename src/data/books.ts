@@ -38,6 +38,7 @@ export const books: Book[] = [
 		featured: true,
 		previousEdition: '1re éd. Samsa, 2024',
 		isbn: '978-2-940881-01-7',
+		price: 27,
 		cover: {
 			background: '#f4f1ea',
 			foreground: '#1b1814',
@@ -61,6 +62,7 @@ export const books: Book[] = [
 		status: 'forthcoming',
 		previousEdition: '1re éd. Samsa, 2020',
 		isbn: '978-2-940881-03-1',
+		price: 27,
 		cover: {
 			background: '#6b7368',
 			foreground: '#f0eadc',
@@ -83,6 +85,7 @@ export const books: Book[] = [
 		status: 'forthcoming',
 		featured: true,
 		isbn: '978-2-940881-07-9',
+		price: 27,
 		cover: {
 			background: '#5c1220',
 			foreground: '#f3eee4',
@@ -106,6 +109,7 @@ export const books: Book[] = [
 		status: 'forthcoming',
 		previousEdition: '1re éd. Samsa, 2021',
 		isbn: '978-2-940881-02-4',
+		price: 27,
 		cover: {
 			background: '#f3ebe3',
 			foreground: '#1b1814',
@@ -129,6 +133,7 @@ export const books: Book[] = [
 		status: 'forthcoming',
 		previousEdition: '1re éd. Samsa, 2023',
 		isbn: '978-2-940881-04-8',
+		price: 37,
 		cover: {
 			background: '#f4f1ea',
 			foreground: '#1b1814',
@@ -148,7 +153,7 @@ export const books: Book[] = [
 		year: 2026,
 		release: 'Mai 2027',
 		pages: 250,
-		price: 29,
+		price: 27,
 		currency: 'CHF',
 		status: 'forthcoming',
 		featured: true,
@@ -176,6 +181,7 @@ export const books: Book[] = [
 		status: 'forthcoming',
 		featured: true,
 		isbn: '978-2-940881-00-0',
+		price: 27,
 		cover: {
 			background: '#1a1614',
 			foreground: '#eadfcf',

@@ -1,5 +1,5 @@
 ---
-import type { ShopBook } from '../services/books';
+import type { ShopBook } from '../../services/books';
 import CheckoutSteps from '../../components/CheckoutSteps.astro';
 import Container from '../../components/Container.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -24,13 +24,22 @@ const catalog: ShopBook[] = (await getBooks()).map(toShopBook);
 	<section class="py-12 md:py-16">
 		<Container>
 			<div id="cart-root">
-				<ul id="cart-lines" class="divide-y divide-line"></ul>
-				<p id="cart-empty" class="font-body text-xl text-ink-muted">
-					Votre panier est vide.
-					<a href="/catalogue" class="editorial-link ml-2 inline-block">Le catalogue</a>
-				</p>
-				<div id="cart-footer" class="mt-10 hidden items-end justify-between gap-8">
-					<p id="cart-total" class="font-serif text-3xl font-semibold"></p>
+				<table id="cart-table" class="hidden w-full border-collapse">
+					<tbody id="cart-lines"></tbody>
+					<tfoot>
+						<tr>
+							<td class="w-full pt-8 pr-6 align-middle"></td>
+							<td class="whitespace-nowrap pt-8 pl-4 align-middle text-center">
+								<p class="font-body text-xl font-bold">Total</p>
+							</td>
+							<td class="whitespace-nowrap pt-8 pl-6 align-middle text-right">
+								<p id="cart-total" class="font-body text-xl font-bold tabular-nums"></p>
+							</td>
+							<td class="w-12 whitespace-nowrap pt-8 pl-3 align-middle"></td>
+						</tr>
+					</tfoot>
+				</table>
+				<div id="cart-actions" class="mt-12 hidden text-right">
 					<button
 						type="button"
 						id="cart-next"
@@ -39,6 +48,10 @@ const catalog: ShopBook[] = (await getBooks()).map(toShopBook);
 						Passer commande
 					</button>
 				</div>
+				<p id="cart-empty" class="font-body text-xl text-ink-muted">
+					Votre panier est vide.
+					<a href="/catalogue" class="editorial-link ml-2 inline-block">Le catalogue</a>
+				</p>
 			</div>
 		</Container>
 	</section>
@@ -49,13 +62,15 @@ const catalog: ShopBook[] = (await getBooks()).map(toShopBook);
 <script>
 	import { addToCart, readCart, setQuantity } from '../../lib/cart';
 	import { unlockAddress } from '../../lib/checkout';
+	import { trash3Svg } from '../../lib/icons';
 	import type { ShopBook } from '../../services/books';
 
 	const catalog: ShopBook[] = JSON.parse(document.getElementById('shop-catalog')?.textContent ?? '[]');
 	const initialSlug = new URLSearchParams(window.location.search).get('livre');
+	const tableEl = document.getElementById('cart-table');
 	const linesEl = document.getElementById('cart-lines');
 	const emptyEl = document.getElementById('cart-empty');
-	const footerEl = document.getElementById('cart-footer');
+	const actionsEl = document.getElementById('cart-actions');
 	const totalEl = document.getElementById('cart-total');
 	const nextBtn = document.getElementById('cart-next');
 
@@ -73,15 +88,16 @@ const catalog: ShopBook[] = (await getBooks()).map(toShopBook);
 	}
 
 	function render() {
-		if (!linesEl || !emptyEl || !footerEl || !totalEl || !nextBtn) return;
+		if (!tableEl || !linesEl || !emptyEl || !actionsEl || !totalEl || !nextBtn) return;
 		const rows = readCart()
 			.map((item) => ({ item, book: bookOf(item.slug) }))
 			.filter((row): row is { item: ReturnType<typeof readCart>[number]; book: ShopBook } => Boolean(row.book));
 
 		linesEl.replaceChildren();
-		emptyEl.classList.toggle('hidden', rows.length > 0);
-		footerEl.classList.toggle('hidden', rows.length === 0);
-		footerEl.classList.toggle('flex', rows.length > 0);
+		const hasItems = rows.length > 0;
+		emptyEl.classList.toggle('hidden', hasItems);
+		tableEl.classList.toggle('hidden', !hasItems);
+		actionsEl.classList.toggle('hidden', !hasItems);
 
 		let total = 0;
 		let priced = true;
@@ -98,8 +114,9 @@ const catalog: ShopBook[] = (await getBooks()).map(toShopBook);
 			meta.className = 'mt-1 font-body text-lg text-ink-muted';
 			meta.textContent = book.authors;
 
-			const info = document.createElement('div');
-			info.append(title, meta);
+			const nameCell = document.createElement('td');
+			nameCell.className = 'w-full py-6 pr-6 align-middle';
+			nameCell.append(title, meta);
 
 			const minus = document.createElement('button');
 			minus.type = 'button';
@@ -122,35 +139,44 @@ const catalog: ShopBook[] = (await getBooks()).map(toShopBook);
 			plus.textContent = '+';
 
 			const qty = document.createElement('div');
-			qty.className = 'flex items-center gap-1';
+			qty.className = 'flex items-center justify-center gap-1';
 			qty.append(minus, value, plus);
 
+			const qtyCell = document.createElement('td');
+			qtyCell.className = 'whitespace-nowrap py-6 pl-4 align-middle';
+			qtyCell.append(qty);
+
 			const price = document.createElement('span');
-			price.className = 'font-body text-xl';
+			price.className = 'font-body text-xl tabular-nums';
 			price.textContent =
 				book.price != null ? formatAmount(book.price * item.quantity, book.currency) : book.priceLabel;
+
+			const priceCell = document.createElement('td');
+			priceCell.className = 'whitespace-nowrap py-6 pl-6 align-middle text-right';
+			priceCell.append(price);
 
 			const remove = document.createElement('button');
 			remove.type = 'button';
 			remove.dataset.remove = book.slug;
 			remove.dataset.hint = 'Retirer l’article du panier';
-			remove.className = 'label cursor-pointer hover:text-ink';
+			remove.className =
+				'grid size-9 cursor-pointer place-items-center text-ink-muted hover:text-ink';
 			remove.setAttribute('aria-label', 'Retirer l’article du panier');
-			remove.textContent = 'Retirer';
+			remove.innerHTML = trash3Svg('size-4');
 
-			const controls = document.createElement('div');
-			controls.className = 'flex flex-wrap items-center gap-5';
-			controls.append(qty, price, remove);
+			const removeCell = document.createElement('td');
+			removeCell.className = 'w-12 whitespace-nowrap py-6 pl-3 align-middle';
+			removeCell.append(remove);
 
-			const li = document.createElement('li');
-			li.className = 'flex flex-wrap items-baseline justify-between gap-6 py-6';
-			li.append(info, controls);
-			linesEl.append(li);
+			const tr = document.createElement('tr');
+			tr.className = 'border-b border-line';
+			tr.append(nameCell, qtyCell, priceCell, removeCell);
+			linesEl.append(tr);
 		}
 
 		totalEl.textContent = priced
-			? `Total ${formatAmount(total, rows[0]?.book.currency ?? 'CHF')}`
-			: 'Total communiqué à la commande';
+			? formatAmount(total, rows[0]?.book.currency ?? 'CHF')
+			: 'Communiqué à la commande';
 		if (nextBtn instanceof HTMLButtonElement) nextBtn.disabled = rows.length === 0;
 	}
 
@@ -159,7 +185,7 @@ const catalog: ShopBook[] = (await getBooks()).map(toShopBook);
 		if (!already) addToCart(initialSlug, 1);
 	}
 
-	linesEl?.addEventListener('click', (event) => {
+	tableEl?.addEventListener('click', (event) => {
 		const qty = (event.target as HTMLElement | null)?.closest<HTMLElement>('[data-qty]');
 		if (qty?.dataset.qty) {
 			const current = readCart().find((item) => item.slug === qty.dataset.qty)?.quantity ?? 1;

@@ -1,5 +1,6 @@
 ---
 import type { ShopBook } from '../services/books';
+import CartIcon from './CartIcon.astro';
 
 interface Props {
 	catalog: ShopBook[];
@@ -15,18 +16,17 @@ const { catalog } = Astro.props;
 		aria-label="Panier"
 		data-cart-link
 	>
-		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="size-[1.5rem]" fill="none" aria-hidden="true">
-			<path d="M7 8h10l-.85 11.2a1.5 1.5 0 0 1-1.5 1.3H9.35a1.5 1.5 0 0 1-1.5-1.3L7 8Z" stroke="currentColor" stroke-width="1.2" />
-			<path d="M9.5 8V7.2a2.5 2.5 0 0 1 5 0V8" stroke="currentColor" stroke-width="1.2" />
-		</svg>
-		<span
-			class="absolute -right-0.5 -bottom-0.5 hidden min-w-[1.1rem] rounded-full bg-accent px-1 text-center font-sans text-[0.62rem] font-semibold leading-[1.1rem] text-paper"
-			data-cart-badge
-		></span>
+		<span class="relative inline-grid">
+			<CartIcon class="size-[1.5rem]" />
+			<span
+				class="absolute -top-1.5 -right-1.5 z-10 hidden min-w-[1.1rem] rounded-full bg-accent px-1 text-center font-sans text-[0.62rem] font-semibold leading-[1.1rem] text-paper"
+				data-cart-badge
+			></span>
+		</span>
 	</a>
 
 	<div
-		class="pointer-events-none invisible absolute right-0 top-full z-40 w-[min(calc(100vw-2rem),22rem)] pt-3 opacity-0 transition-opacity duration-150 group-hover/cart:pointer-events-auto group-hover/cart:visible group-hover/cart:opacity-100"
+		class="pointer-events-none invisible absolute right-0 top-full z-40 hidden w-[min(calc(100vw-2rem),22rem)] pt-3 opacity-0 transition-opacity duration-150 group-hover/cart:pointer-events-auto group-hover/cart:visible group-hover/cart:opacity-100 md:block"
 		data-cart-dropdown
 	>
 		<div class="border border-line bg-paper-raised p-5 shadow-[0_16px_40px_rgb(27_24_20_/_0.08)]">
@@ -40,6 +40,7 @@ const { catalog } = Astro.props;
 
 <script>
 	import { addToCart, cartCount, readCart, setQuantity } from '../lib/cart';
+	import { trash3Svg } from '../lib/icons';
 	import type { ShopBook } from '../services/books';
 
 	const catalog: ShopBook[] = JSON.parse(document.getElementById('cart-catalog')?.textContent ?? '[]');
@@ -176,8 +177,9 @@ const { catalog } = Astro.props;
 				return;
 			}
 
-			const list = document.createElement('ul');
-			list.className = 'divide-y divide-line';
+			const table = document.createElement('table');
+			table.className = 'w-full border-collapse';
+			const tbody = document.createElement('tbody');
 			let total = 0;
 			let priced = true;
 
@@ -185,28 +187,13 @@ const { catalog } = Astro.props;
 				if (book.price == null) priced = false;
 				else total += book.price * item.quantity;
 
-				const li = document.createElement('li');
-				li.className = 'py-3';
-
-				const top = document.createElement('div');
-				top.className = 'flex items-start justify-between gap-3';
-
 				const title = document.createElement('p');
 				title.className = 'font-serif text-lg font-semibold leading-snug';
 				title.textContent = book.title;
 
-				const linePrice = document.createElement('p');
-				linePrice.className = 'shrink-0 font-body text-base text-ink';
-				linePrice.textContent =
-					book.price != null ? formatAmount(book.price * item.quantity, book.currency) : book.priceLabel;
-
-				top.append(title, linePrice);
-
-				const controls = document.createElement('div');
-				controls.className = 'mt-2 flex items-center justify-between gap-3';
-
-				const qty = document.createElement('div');
-				qty.className = 'flex items-center gap-1.5';
+				const nameCell = document.createElement('td');
+				nameCell.className = 'w-full py-3 pr-3 align-middle';
+				nameCell.append(title);
 
 				const minus = document.createElement('button');
 				minus.type = 'button';
@@ -228,31 +215,65 @@ const { catalog } = Astro.props;
 				plus.setAttribute('aria-label', `Augmenter ${book.title}`);
 				plus.textContent = '+';
 
+				const qty = document.createElement('div');
+				qty.className = 'flex items-center justify-center gap-0.5';
 				qty.append(minus, value, plus);
+
+				const qtyCell = document.createElement('td');
+				qtyCell.className = 'whitespace-nowrap py-3 pl-2 align-middle';
+				qtyCell.append(qty);
+
+				const linePrice = document.createElement('p');
+				linePrice.className = 'font-body text-base tabular-nums';
+				linePrice.textContent =
+					book.price != null ? formatAmount(book.price * item.quantity, book.currency) : book.priceLabel;
+
+				const priceCell = document.createElement('td');
+				priceCell.className = 'whitespace-nowrap py-3 pl-3 align-middle text-right';
+				priceCell.append(linePrice);
 
 				const remove = document.createElement('button');
 				remove.type = 'button';
 				remove.dataset.remove = book.slug;
-				remove.className =
-					'cursor-pointer font-sans text-[0.7rem] font-semibold tracking-[0.12em] text-ink-muted uppercase hover:text-ink';
-				remove.textContent = 'Retirer';
+				remove.dataset.hint = 'Retirer l’article du panier';
+				remove.className = 'grid size-7 cursor-pointer place-items-center text-ink-muted hover:text-ink';
+				remove.setAttribute('aria-label', `Retirer ${book.title}`);
+				remove.innerHTML = trash3Svg('size-4');
 
-				controls.append(qty, remove);
-				li.append(top, controls);
-				list.append(li);
+				const removeCell = document.createElement('td');
+				removeCell.className = 'whitespace-nowrap py-3 pl-2 align-middle';
+				removeCell.append(remove);
+
+				const tr = document.createElement('tr');
+				tr.className = 'border-b border-line';
+				tr.append(nameCell, qtyCell, priceCell, removeCell);
+				tbody.append(tr);
 			}
 
-			const footer = document.createElement('div');
-			footer.className = 'mt-4 flex items-baseline justify-between gap-4 border-t border-line pt-4';
-			const totalLabel = document.createElement('p');
-			totalLabel.className = 'font-serif text-xl font-semibold';
-			totalLabel.textContent = priced ? formatAmount(total, rows[0]?.book.currency ?? 'CHF') : 'Prix communiqué';
 			const totalWord = document.createElement('p');
-			totalWord.className = 'label';
+			totalWord.className = 'font-body text-base font-bold';
 			totalWord.textContent = 'Total';
-			footer.append(totalWord, totalLabel);
+			const totalLabelCell = document.createElement('td');
+			totalLabelCell.className = 'whitespace-nowrap py-4 pl-2 align-middle text-center';
+			totalLabelCell.append(totalWord);
 
-			body.replaceChildren(list, footer, goToCartLink());
+			const totalValue = document.createElement('p');
+			totalValue.className = 'font-body text-base font-bold tabular-nums';
+			totalValue.textContent = priced
+				? formatAmount(total, rows[0]?.book.currency ?? 'CHF')
+				: 'Prix communiqué';
+			const totalCell = document.createElement('td');
+			totalCell.className = 'whitespace-nowrap py-4 pl-3 align-middle text-right';
+			totalCell.append(totalValue);
+
+			const foot = document.createElement('tr');
+			foot.className = 'border-t border-line';
+			foot.append(document.createElement('td'), totalLabelCell, totalCell, document.createElement('td'));
+			const tfoot = document.createElement('tfoot');
+			tfoot.append(foot);
+
+			table.append(tbody, tfoot);
+			body.replaceChildren(table, goToCartLink());
 		});
 	}
 

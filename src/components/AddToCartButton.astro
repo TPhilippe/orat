@@ -1,6 +1,7 @@
 ---
 import { cartActionLabel } from '../services/books';
 import type { Book } from '../types';
+import CartIcon from './CartIcon.astro';
 
 interface Props {
 	slug: string;
@@ -24,9 +25,16 @@ const hint = label ?? (book ? cartActionLabel(book) : 'Ajouter au panier');
 	data-hint={hint}
 	aria-label={hint}
 >
-	<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="size-6" fill="none" aria-hidden="true">
-		<path d="M7 8h10l-.85 11.2a1.5 1.5 0 0 1-1.5 1.3H9.35a1.5 1.5 0 0 1-1.5-1.3L7 8Z" stroke="currentColor" stroke-width="1.2" />
-		<path d="M9.5 8V7.2a2.5 2.5 0 0 1 5 0V8" stroke="currentColor" stroke-width="1.2" />
-		<path d="M12 12.5v4M10 14.5h4" stroke="currentColor" stroke-width="1.2" />
-	</svg>
+	<span class="relative inline-grid">
+		<CartIcon class="size-6" />
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			viewBox="0 0 10 10"
+			class="pointer-events-none absolute -top-1.5 -right-1.5 size-2.5"
+			fill="none"
+			aria-hidden="true"
+		>
+			<path d="M5 1.1v7.8M1.1 5h7.8" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" />
+		</svg>
+	</span>
 </button>

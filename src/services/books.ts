@@ -3,12 +3,11 @@ import type { Book, Collection } from '../types';
 import { enrichBook, getCatalogProducts } from './catalog';
 
 export function formatPrice(amount: number, currency: Book['currency']): string {
-	return new Intl.NumberFormat('fr-CH', {
-		style: 'currency',
-		currency,
+	const value = new Intl.NumberFormat('fr-CH', {
 		minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
 		maximumFractionDigits: 2,
 	}).format(amount);
+	return `${currency} ${value}`;
 }
 
 export function priceLabel(book: Book): string {
