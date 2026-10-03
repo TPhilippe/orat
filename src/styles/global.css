@@ -29,6 +29,29 @@
 		-webkit-font-smoothing: antialiased;
 	}
 
+	a[href],
+	button:not(:disabled),
+	summary,
+	label:has(input[type="checkbox"]),
+	label:has(input[type="radio"]),
+	input[type="checkbox"],
+	input[type="radio"],
+	input[type="submit"],
+	input[type="button"],
+	select,
+	[role="button"]:not([aria-disabled="true"]) {
+		cursor: pointer;
+	}
+
+	button:disabled,
+	input:disabled {
+		cursor: not-allowed;
+	}
+
+	[aria-disabled="true"] {
+		cursor: default;
+	}
+
 	::selection {
 		background-color: color-mix(in srgb, var(--color-accent) 16%, transparent);
 		color: var(--color-ink);
@@ -62,10 +85,74 @@
 	color: var(--color-ink);
 	border-bottom: 1px solid var(--color-ink);
 	padding-bottom: 0.15rem;
+	cursor: pointer;
 	transition: color 200ms ease, border-color 200ms ease;
 
 	&:hover {
 		color: var(--color-accent);
 		border-color: var(--color-accent);
+	}
+}
+
+[data-hint] {
+	position: relative;
+}
+
+[data-hint]::after {
+	content: attr(data-hint);
+	position: absolute;
+	left: 50%;
+	bottom: calc(100% + 0.45rem);
+	z-index: 40;
+	width: max-content;
+	max-width: 16rem;
+	padding: 0.4rem 0.65rem;
+	border: 1px solid var(--color-line);
+	background: var(--color-paper-raised);
+	color: var(--color-ink);
+	font-family: var(--font-sans);
+	font-size: 0.6875rem;
+	font-weight: 600;
+	letter-spacing: 0.12em;
+	line-height: 1.35;
+	text-transform: uppercase;
+	white-space: nowrap;
+	opacity: 0;
+	pointer-events: none;
+	transform: translate(-50%, 0.2rem);
+	box-shadow: 0 10px 24px rgb(27 24 20 / 0.08);
+	transition:
+		opacity 160ms ease,
+		transform 160ms ease;
+}
+
+[data-hint]:hover::after,
+[data-hint]:focus-visible::after {
+	opacity: 1;
+	transform: translate(-50%, 0);
+}
+
+.orat-cart-flyer {
+	position: fixed;
+	z-index: 80;
+	object-fit: cover;
+	pointer-events: none;
+	border: 1px solid rgb(27 24 20 / 0.1);
+	box-shadow: 0 12px 28px rgb(27 24 20 / 0.16);
+}
+
+.orat-cart-receive {
+	animation: orat-cart-receive 420ms ease;
+}
+
+@keyframes orat-cart-receive {
+	0%,
+	100% {
+		transform: scale(1);
+		color: inherit;
+	}
+	40% {
+		transform: scale(1.12);
+		color: var(--color-accent);
 	}
 }

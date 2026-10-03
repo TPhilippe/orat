@@ -1,0 +1,331 @@
+---
+import CheckoutSteps from '../../components/CheckoutSteps.astro';
+import Container from '../../components/Container.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getBooks, toShopBook } from '../../services/books';
+import { getHouse } from '../../services/house';
+import type { ShopBook } from '../../services/books';
+
+const catalog: ShopBook[] = (await getBooks()).map(toShopBook);
+const house = await getHouse();
+---
+
+<BaseLayout
+	title="Validation"
+	description="Vérifiez votre commande, le mode de livraison et le paiement avant de confirmer."
+>
+	<Container>
+		<header class="border-b border-line pb-10 pt-12 md:pb-12 md:pt-16">
+			<CheckoutSteps current="checkout" />
+			<h1 class="mt-8 font-serif text-4xl font-semibold leading-[1.12] tracking-tight md:text-5xl">
+				Validation
+			</h1>
+			<p class="mt-5 max-w-2xl font-body text-xl leading-[1.7] text-ink">
+				Dernière vérification avant d’envoyer la commande.
+			</p>
+		</header>
+	</Container>
+
+	<section class="py-12 md:py-16">
+		<Container>
+			<div id="checkout-root" class="max-w-2xl">
+				<section>
+					<p class="label">Panier</p>
+					<ul id="checkout-lines" class="mt-6 divide-y divide-line"></ul>
+					<p id="checkout-total" class="mt-6 font-serif text-2xl font-semibold"></p>
+				</section>
+
+				<form id="checkout-form" class="mt-12 space-y-10">
+					<fieldset>
+						<legend class="label">Livraison</legend>
+						<div class="mt-4 flex flex-wrap gap-6 font-body text-xl">
+							<label class="inline-flex items-center gap-2">
+								<input type="radio" name="delivery" value="pickup" class="accent-accent" />
+								Retrait à Môtier
+							</label>
+							<label class="inline-flex items-center gap-2">
+								<input type="radio" name="delivery" value="ship" checked class="accent-accent" />
+								Envoi par Poste
+							</label>
+						</div>
+					</fieldset>
+
+					<fieldset>
+						<legend class="label">Paiement</legend>
+						<div class="mt-4 flex flex-wrap gap-6 font-body text-xl">
+							<label class="inline-flex items-center gap-2">
+								<input type="radio" name="payment" value="transfer" checked class="accent-accent" />
+								Virement bancaire
+							</label>
+							<label id="cash-option" class="hidden items-center gap-2">
+								<input type="radio" name="payment" value="cash" class="accent-accent" />
+								En espèces
+							</label>
+						</div>
+					</fieldset>
+
+					<label class="block">
+						<span class="label">Note</span>
+						<textarea
+							name="notes"
+							rows="3"
+							class="mt-2 w-full resize-y border-0 border-b border-line bg-transparent py-3 text-xl outline-none focus:border-ink"
+						></textarea>
+					</label>
+
+					<p class="font-body text-lg leading-relaxed text-ink-muted" id="payment-hint">
+						Le règlement se fait par virement bancaire. Dès confirmation, vous recevrez la référence à
+						indiquer.
+					</p>
+
+					<button
+						type="submit"
+						id="checkout-submit"
+						class="inline-flex items-center bg-ink px-8 py-3.5 font-sans text-[0.8125rem] font-semibold tracking-[0.14em] text-paper uppercase transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+					>
+						Commander
+					</button>
+					<p id="checkout-status" class="hidden font-body text-base text-ink-muted" role="status"></p>
+				</form>
+			</div>
+
+			<section id="checkout-thanks" class="hidden max-w-2xl">
+				<p class="label">Commande enregistrée</p>
+				<h2 id="thanks-title" class="mt-4 font-serif text-3xl font-semibold tracking-tight md:text-4xl"></h2>
+				<div id="thanks-body" class="mt-6 space-y-4 font-body text-xl leading-[1.7] text-ink"></div>
+			</section>
+		</Container>
+	</section>
+</BaseLayout>
+
+<script
+	type="application/json"
+	id="checkout-data"
+	set:html={JSON.stringify({
+		catalog,
+		houseEmail: house.email,
+		legalName: house.legalName,
+		bank: house.bank,
+	})}
+/>
+
+<script>
+	import { clearCart, readCart } from '../../lib/cart';
+	import { clearCheckout, readCheckout, writeCheckout } from '../../lib/checkout';
+	import { placeOrder } from '../../services/orders';
+	import type { ShopBook } from '../../services/books';
+
+	const data = JSON.parse(document.getElementById('checkout-data')?.textContent ?? '{}');
+	const catalog: ShopBook[] = data.catalog ?? [];
+	const { houseEmail, legalName, bank } = data;
+
+	if (!readCart().length || !readCheckout().reached.checkout) {
+		window.location.replace(readCart().length ? '/shop/address' : '/shop/cart');
+	}
+
+	const linesEl = document.getElementById('checkout-lines');
+	const totalEl = document.getElementById('checkout-total');
+	const form = document.getElementById('checkout-form');
+	const cashOption = document.getElementById('cash-option');
+	const hint = document.getElementById('payment-hint');
+	const statusEl = document.getElementById('checkout-status');
+	const submit = document.getElementById('checkout-submit');
+	const root = document.getElementById('checkout-root');
+	const thanks = document.getElementById('checkout-thanks');
+	const thanksTitle = document.getElementById('thanks-title');
+	const thanksBody = document.getElementById('thanks-body');
+	const draft = readCheckout();
+
+	function bookOf(slug: string) {
+		return catalog.find((book) => book.slug === slug);
+	}
+
+	function formatAmount(amount: number, currency: ShopBook['currency']) {
+		return new Intl.NumberFormat('fr-CH', {
+			style: 'currency',
+			currency,
+			minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
+			maximumFractionDigits: 2,
+		}).format(amount);
+	}
+
+	function rows() {
+		return readCart()
+			.map((item) => ({ item, book: bookOf(item.slug) }))
+			.filter((row): row is { item: ReturnType<typeof readCart>[number]; book: ShopBook } => Boolean(row.book));
+	}
+
+	function renderLines() {
+		if (!linesEl || !totalEl) return;
+		const current = rows();
+		linesEl.replaceChildren();
+		let total = 0;
+		let priced = true;
+		for (const { item, book } of current) {
+			if (book.price == null) priced = false;
+			else total += book.price * item.quantity;
+			const li = document.createElement('li');
+			li.className = 'flex flex-wrap items-baseline justify-between gap-4 py-4';
+			const title = document.createElement('p');
+			title.className = 'font-serif text-2xl font-semibold';
+			title.textContent = `${item.quantity} × ${book.title}`;
+			const price = document.createElement('p');
+			price.className = 'font-body text-xl';
+			price.textContent =
+				book.price != null ? formatAmount(book.price * item.quantity, book.currency) : book.priceLabel;
+			li.append(title, price);
+			linesEl.append(li);
+		}
+		totalEl.textContent = priced
+			? `Total ${formatAmount(total, current[0]?.book.currency ?? 'CHF')}`
+			: 'Total communiqué à la commande';
+	}
+
+	function syncPayment() {
+		const delivery = form?.querySelector<HTMLInputElement>('input[name="delivery"]:checked')?.value;
+		const pickup = delivery === 'pickup';
+		cashOption?.classList.toggle('hidden', !pickup);
+		cashOption?.classList.toggle('inline-flex', pickup);
+		if (!pickup) {
+			const transfer = form?.querySelector<HTMLInputElement>('input[name="payment"][value="transfer"]');
+			if (transfer) transfer.checked = true;
+		}
+		if (hint) {
+			hint.textContent = pickup
+				? 'Au retrait à Môtier, le règlement peut se faire par virement ou en espèces.'
+				: 'Le règlement se fait par virement bancaire. Dès confirmation, vous recevrez la référence à indiquer.';
+		}
+	}
+
+	const deliveryInput = form?.querySelector<HTMLInputElement>(`input[name="delivery"][value="${draft.delivery}"]`);
+	if (deliveryInput) deliveryInput.checked = true;
+	const paymentInput = form?.querySelector<HTMLInputElement>(`input[name="payment"][value="${draft.payment}"]`);
+	if (paymentInput) paymentInput.checked = true;
+	const notes = form?.querySelector<HTMLTextAreaElement>('[name="notes"]');
+	if (notes) notes.value = draft.notes;
+
+	form?.addEventListener('change', () => {
+		if (!(form instanceof HTMLFormElement)) return;
+		const next = new FormData(form);
+		writeCheckout({
+			delivery: String(next.get('delivery')) === 'pickup' ? 'pickup' : 'ship',
+			payment: String(next.get('payment')) === 'cash' ? 'cash' : 'transfer',
+			notes: String(next.get('notes') ?? ''),
+		});
+		syncPayment();
+	});
+
+	syncPayment();
+	renderLines();
+
+	form?.addEventListener('submit', async (event) => {
+		event.preventDefault();
+		if (!(form instanceof HTMLFormElement)) return;
+		const current = rows();
+		if (!current.length) {
+			window.location.replace('/shop/cart');
+			return;
+		}
+
+		const state = readCheckout();
+		const billing = state.billing;
+		if (!billing.email || !billing.last_name || !billing.street || !billing.city || !billing.zipcode) {
+			window.location.replace('/shop/address');
+			return;
+		}
+
+		const delivery = String(new FormData(form).get('delivery')) === 'pickup' ? 'pickup' : 'ship';
+		const payment = delivery === 'pickup' && String(new FormData(form).get('payment')) === 'cash' ? 'cash' : 'transfer';
+		const note = String(new FormData(form).get('notes') ?? '').trim();
+
+		const shipping = state.sameAddress ? billing : state.shipping;
+		const deliveryLabel = delivery === 'pickup' ? 'Retrait à Môtier' : 'Envoi par Poste';
+		const paymentLabel = payment === 'cash' ? 'Paiement en espèces au retrait' : 'Virement bancaire';
+		const shippingLine =
+			delivery === 'ship' && !state.sameAddress
+				? `Livraison : ${[shipping.first_name, shipping.last_name, shipping.street, shipping.number, `${shipping.zipcode ?? ''} ${shipping.city ?? ''}`, shipping.country].filter(Boolean).join(', ')}`
+				: '';
+
+		if (statusEl) {
+			statusEl.textContent = 'Envoi de la commande…';
+			statusEl.classList.remove('hidden');
+		}
+		if (submit instanceof HTMLButtonElement) submit.disabled = true;
+
+		try {
+			const result = await placeOrder({
+				customer: {
+					email: String(billing.email),
+					first_name: String(billing.first_name ?? ''),
+					last_name: String(billing.last_name ?? ''),
+					company: String(billing.company ?? ''),
+					phone: String(billing.phone ?? ''),
+					street: String(billing.street),
+					number: String(billing.number ?? ''),
+					zipcode: String(billing.zipcode),
+					city: String(billing.city),
+					country: String(billing.country ?? 'Suisse'),
+				},
+				items: current.map(({ item, book }) => ({
+					book: {
+						slug: book.slug,
+						title: book.title,
+						status: book.status,
+						inStock: book.inStock,
+						productId: book.productId ?? undefined,
+						price: book.price ?? undefined,
+						currency: book.currency,
+					},
+					quantity: item.quantity,
+				})),
+				notes: [deliveryLabel, paymentLabel, shippingLine, note].filter(Boolean).join('\n\n'),
+				houseEmail,
+			});
+
+			if (!thanks || !thanksTitle || !thanksBody || !root) return;
+			root.classList.add('hidden');
+			thanks.classList.remove('hidden');
+			thanksTitle.textContent = `Commande ${result.id}`;
+
+			const intro = document.createElement('p');
+			if (payment === 'cash') {
+				intro.textContent = `Merci. Le règlement se fera en espèces lors du retrait à Môtier, à l’ordre de ${legalName}.`;
+			} else {
+				intro.textContent = `Merci. Le règlement se fait par virement bancaire, à l’ordre de ${legalName}.`;
+			}
+
+			const extra = document.createElement('p');
+			if (payment === 'transfer' && bank?.iban) {
+				extra.className = 'whitespace-pre-line';
+				extra.textContent = [legalName, bank.bankName, `IBAN ${bank.iban}`, bank.bic ? `BIC ${bank.bic}` : '']
+					.filter(Boolean)
+					.join('\n');
+			} else if (payment === 'transfer') {
+				extra.textContent = `Les coordonnées de virement, avec la mention ${result.id}, vous seront adressées par courriel.`;
+			} else {
+				extra.textContent = `Mention de commande : ${result.id}`;
+			}
+
+			const follow = document.createElement('p');
+			follow.textContent =
+				result.source === 'mailto'
+					? 'Votre client de messagerie va s’ouvrir pour nous transmettre la commande.'
+					: 'La commande est enregistrée. Nous vous écrivons dès confirmation.';
+
+			thanksBody.replaceChildren(intro, extra, follow);
+			if (payment === 'transfer' && bank?.iban) {
+				const mention = document.createElement('p');
+				mention.textContent = `Mention obligatoire : ${result.id}`;
+				thanksBody.append(mention);
+			}
+
+			clearCart();
+			clearCheckout();
+		} catch (error) {
+			if (statusEl) {
+				statusEl.textContent = error instanceof Error ? error.message : 'La commande n’a pas pu être transmise.';
+			}
+			if (submit instanceof HTMLButtonElement) submit.disabled = false;
+		}
+	});
+</script>

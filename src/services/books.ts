@@ -33,8 +33,40 @@ export function shopLabel(book: Book): string {
 	return isPurchase(book) ? 'Acheter' : 'Précommander';
 }
 
+export function cartActionLabel(book: Pick<Book, 'status' | 'inStock'>): string {
+	return isPurchase(book) ? 'Ajouter au panier' : 'Précommander';
+}
+
 export function shopHref(book: Book): string {
-	return `/catalogue/commande?livre=${book.slug}`;
+	return `/shop/cart?livre=${book.slug}`;
+}
+
+export type ShopBook = {
+	slug: string;
+	title: string;
+	authors: string;
+	price: number | null;
+	currency: Book['currency'];
+	priceLabel: string;
+	status: Book['status'];
+	inStock: boolean;
+	productId: number | null;
+	cover?: string;
+};
+
+export function toShopBook(book: Book): ShopBook {
+	return {
+		slug: book.slug,
+		title: book.title,
+		authors: formatAuthors(book),
+		price: book.price ?? null,
+		currency: book.currency,
+		priceLabel: priceLabel(book),
+		status: book.status,
+		inStock: Boolean(book.inStock),
+		productId: book.productId ?? null,
+		cover: book.cover.front,
+	};
 }
 
 export function availabilityLabel(book: Book): string {

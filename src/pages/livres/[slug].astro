@@ -5,13 +5,12 @@ import ButtonLink from '../../components/ButtonLink.astro';
 import Container from '../../components/Container.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import {
+	cartActionLabel,
 	formatAuthors,
 	formatPrice,
 	getBookBySlug,
 	getBooks,
 	getRelatedBooks,
-	shopHref,
-	shopLabel,
 } from '../../services/books';
 
 export async function getStaticPaths() {
@@ -76,7 +75,14 @@ const facts = [
 				</dl>
 
 				<div class="mt-10 flex flex-wrap items-center justify-center gap-8 lg:justify-start">
-					<ButtonLink href={shopHref(book)} variant="solid">{shopLabel(book)}</ButtonLink>
+					<button
+						type="button"
+						data-add-cart={book.slug}
+						data-cover={book.cover.front}
+						class="inline-flex cursor-pointer items-center bg-ink px-8 py-3.5 font-sans text-[0.8125rem] font-semibold tracking-[0.14em] text-paper uppercase transition-colors hover:bg-accent"
+					>
+						{cartActionLabel(book)}
+					</button>
 					<ButtonLink href="/catalogue">Le catalogue</ButtonLink>
 				</div>
 			</div>

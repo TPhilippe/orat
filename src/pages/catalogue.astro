@@ -23,17 +23,14 @@ const books = await getBooks();
 
 	<nav class="border-y border-line" aria-label="Collections">
 		<Container wide>
-			<div class="flex flex-wrap items-center justify-between gap-x-8 gap-y-3 py-5 md:py-6">
-				<div class="flex flex-wrap gap-x-8 gap-y-3">
-					{
-						collections.map((collection) => (
-							<a href={`#${collection.slug}`} class="label hover:text-ink">
-								{collection.name}
-							</a>
-						))
-					}
-				</div>
-				<a id="cart-link" href="/catalogue/commande" class="editorial-link hidden">Voir la commande</a>
+			<div class="flex flex-wrap gap-x-8 gap-y-3 py-5 md:py-6">
+				{
+					collections.map((collection) => (
+						<a href={`#${collection.slug}`} class="label hover:text-ink">
+							{collection.name}
+						</a>
+					))
+				}
 			</div>
 		</Container>
 	</nav>
@@ -46,7 +43,7 @@ const books = await getBooks();
 			return (
 				<section
 					id={collection.slug}
-					class:list={['scroll-mt-20 py-12 md:py-16', index > 0 && 'border-t border-line']}
+					class:list={['scroll-mt-28 py-12 md:py-16', index > 0 && 'border-t border-line']}
 				>
 					<Container wide>
 						<div class="mb-8 max-w-xl">
@@ -60,13 +57,3 @@ const books = await getBooks();
 		})
 	}
 </BaseLayout>
-
-<script>
-	import { cartCount, readCart } from '../lib/cart';
-
-	const link = document.getElementById('cart-link');
-	if (link && cartCount(readCart()) > 0) {
-		link.classList.remove('hidden');
-		link.textContent = `Voir la commande (${cartCount()})`;
-	}
-</script>

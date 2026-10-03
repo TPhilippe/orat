@@ -1,0 +1,232 @@
+---
+import CheckoutSteps from '../../components/CheckoutSteps.astro';
+import Container from '../../components/Container.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+	title="Livraison et facturation"
+	description="Adresse de facturation et de livraison pour votre commande aux Éditions Orat."
+>
+	<Container>
+		<header class="border-b border-line pb-10 pt-12 md:pb-12 md:pt-16">
+			<CheckoutSteps current="address" />
+			<h1 class="mt-8 font-serif text-4xl font-semibold leading-[1.12] tracking-tight md:text-5xl">
+				Livraison / Facturation
+			</h1>
+			<p class="mt-5 max-w-2xl font-body text-xl leading-[1.7] text-ink">
+				Si les adresses sont identiques, un seul formulaire suffit.
+			</p>
+		</header>
+	</Container>
+
+	<section class="py-12 md:py-16">
+		<Container>
+			<form id="address-form" class="relative max-w-2xl space-y-10" novalidate>
+				<div class="absolute -left-[9999px] h-0 w-0 overflow-hidden" aria-hidden="true">
+					<label>
+						Site web
+						<input type="text" name="website" tabindex="-1" autocomplete="off" />
+					</label>
+				</div>
+
+				<fieldset class="space-y-7">
+					<legend class="label">Facturation</legend>
+					<div class="grid gap-7 md:grid-cols-2">
+						<label class="block">
+							<span class="label">Prénom</span>
+							<input type="text" name="first_name" autocomplete="given-name" data-billing class="mt-2 w-full border-0 border-b border-line bg-transparent py-3 text-xl outline-none focus:border-ink" />
+						</label>
+						<label class="block">
+							<span class="label">Nom</span>
+							<input type="text" name="last_name" required autocomplete="family-name" data-billing class="mt-2 w-full border-0 border-b border-line bg-transparent py-3 text-xl outline-none focus:border-ink" />
+						</label>
+					</div>
+					<div class="grid gap-7 md:grid-cols-2">
+						<label class="block">
+							<span class="label">Courriel</span>
+							<input type="email" name="email" required autocomplete="email" data-billing class="mt-2 w-full border-0 border-b border-line bg-transparent py-3 text-xl outline-none focus:border-ink" />
+						</label>
+						<label class="block">
+							<span class="label">Téléphone</span>
+							<input type="tel" name="phone" autocomplete="tel" data-billing class="mt-2 w-full border-0 border-b border-line bg-transparent py-3 text-xl outline-none focus:border-ink" />
+						</label>
+					</div>
+					<label class="block">
+						<span class="label">Société</span>
+						<input type="text" name="company" autocomplete="organization" data-billing class="mt-2 w-full border-0 border-b border-line bg-transparent py-3 text-xl outline-none focus:border-ink" />
+					</label>
+					<div class="grid gap-7 md:grid-cols-[1fr_6rem]">
+						<label class="block">
+							<span class="label">Rue</span>
+							<input type="text" name="street" required autocomplete="address-line1" data-billing class="mt-2 w-full border-0 border-b border-line bg-transparent py-3 text-xl outline-none focus:border-ink" />
+						</label>
+						<label class="block">
+							<span class="label">N°</span>
+							<input type="text" name="number" autocomplete="address-line2" data-billing class="mt-2 w-full border-0 border-b border-line bg-transparent py-3 text-xl outline-none focus:border-ink" />
+						</label>
+					</div>
+					<div class="grid gap-7 md:grid-cols-[8rem_1fr_10rem]">
+						<label class="block">
+							<span class="label">NPA</span>
+							<input type="text" name="zipcode" required autocomplete="postal-code" data-billing class="mt-2 w-full border-0 border-b border-line bg-transparent py-3 text-xl outline-none focus:border-ink" />
+						</label>
+						<label class="block">
+							<span class="label">Ville</span>
+							<input type="text" name="city" required autocomplete="address-level2" data-billing class="mt-2 w-full border-0 border-b border-line bg-transparent py-3 text-xl outline-none focus:border-ink" />
+						</label>
+						<label class="block">
+							<span class="label">Pays</span>
+							<input type="text" name="country" value="Suisse" autocomplete="country-name" data-billing class="mt-2 w-full border-0 border-b border-line bg-transparent py-3 text-xl outline-none focus:border-ink" />
+						</label>
+					</div>
+				</fieldset>
+
+				<label class="flex items-center gap-3 font-body text-xl">
+					<input type="checkbox" name="same_address" id="same-address" checked class="accent-accent size-4" />
+					L’adresse de livraison est identique
+				</label>
+
+				<fieldset id="shipping-fields" class="hidden space-y-7">
+					<legend class="label">Livraison</legend>
+					<div class="grid gap-7 md:grid-cols-2">
+						<label class="block">
+							<span class="label">Prénom</span>
+							<input type="text" name="ship_first_name" data-shipping class="mt-2 w-full border-0 border-b border-line bg-transparent py-3 text-xl outline-none focus:border-ink" />
+						</label>
+						<label class="block">
+							<span class="label">Nom</span>
+							<input type="text" name="ship_last_name" data-shipping class="mt-2 w-full border-0 border-b border-line bg-transparent py-3 text-xl outline-none focus:border-ink" />
+						</label>
+					</div>
+					<div class="grid gap-7 md:grid-cols-[1fr_6rem]">
+						<label class="block">
+							<span class="label">Rue</span>
+							<input type="text" name="ship_street" data-shipping class="mt-2 w-full border-0 border-b border-line bg-transparent py-3 text-xl outline-none focus:border-ink" />
+						</label>
+						<label class="block">
+							<span class="label">N°</span>
+							<input type="text" name="ship_number" data-shipping class="mt-2 w-full border-0 border-b border-line bg-transparent py-3 text-xl outline-none focus:border-ink" />
+						</label>
+					</div>
+					<div class="grid gap-7 md:grid-cols-[8rem_1fr_10rem]">
+						<label class="block">
+							<span class="label">NPA</span>
+							<input type="text" name="ship_zipcode" data-shipping class="mt-2 w-full border-0 border-b border-line bg-transparent py-3 text-xl outline-none focus:border-ink" />
+						</label>
+						<label class="block">
+							<span class="label">Ville</span>
+							<input type="text" name="ship_city" data-shipping class="mt-2 w-full border-0 border-b border-line bg-transparent py-3 text-xl outline-none focus:border-ink" />
+						</label>
+						<label class="block">
+							<span class="label">Pays</span>
+							<input type="text" name="ship_country" value="Suisse" data-shipping class="mt-2 w-full border-0 border-b border-line bg-transparent py-3 text-xl outline-none focus:border-ink" />
+						</label>
+					</div>
+				</fieldset>
+
+				<p id="address-status" class="hidden font-body text-base text-ink-muted" role="status"></p>
+
+				<button
+					type="submit"
+					class="inline-flex items-center bg-ink px-8 py-3.5 font-sans text-[0.8125rem] font-semibold tracking-[0.14em] text-paper uppercase transition-colors hover:bg-accent"
+				>
+					Continuer
+				</button>
+			</form>
+		</Container>
+	</section>
+</BaseLayout>
+
+<script>
+	import { readCart } from '../../lib/cart';
+	import { readCheckout, unlockCheckout, writeCheckout } from '../../lib/checkout';
+
+	if (!readCart().length || !readCheckout().reached.address) {
+		window.location.replace('/shop/cart');
+	}
+
+	const form = document.getElementById('address-form');
+	const same = document.getElementById('same-address');
+	const shipping = document.getElementById('shipping-fields');
+	const statusEl = document.getElementById('address-status');
+	const draft = readCheckout();
+
+	function fill(prefix: 'billing' | 'shipping', source: Record<string, unknown>) {
+		const map: Record<string, string> = prefix === 'billing'
+			? { first_name: 'first_name', last_name: 'last_name', email: 'email', phone: 'phone', company: 'company', street: 'street', number: 'number', zipcode: 'zipcode', city: 'city', country: 'country' }
+			: { first_name: 'ship_first_name', last_name: 'ship_last_name', street: 'ship_street', number: 'ship_number', zipcode: 'ship_zipcode', city: 'ship_city', country: 'ship_country' };
+		for (const [key, name] of Object.entries(map)) {
+			const input = form?.querySelector<HTMLInputElement>(`[name="${name}"]`);
+			const value = source[key];
+			if (input && typeof value === 'string') input.value = value;
+		}
+	}
+
+	function toggleShipping() {
+		const checked = same instanceof HTMLInputElement ? same.checked : true;
+		shipping?.classList.toggle('hidden', checked);
+	}
+
+	fill('billing', draft.billing);
+	fill('shipping', draft.shipping);
+	if (same instanceof HTMLInputElement) same.checked = draft.sameAddress;
+	toggleShipping();
+	same?.addEventListener('change', toggleShipping);
+
+	form?.addEventListener('submit', (event) => {
+		event.preventDefault();
+		if (!(form instanceof HTMLFormElement)) return;
+		const data = new FormData(form);
+		if (String(data.get('website') ?? '').trim()) return;
+
+		const billing = {
+			first_name: String(data.get('first_name') ?? '').trim(),
+			last_name: String(data.get('last_name') ?? '').trim(),
+			email: String(data.get('email') ?? '').trim(),
+			phone: String(data.get('phone') ?? '').trim(),
+			company: String(data.get('company') ?? '').trim(),
+			street: String(data.get('street') ?? '').trim(),
+			number: String(data.get('number') ?? '').trim(),
+			zipcode: String(data.get('zipcode') ?? '').trim(),
+			city: String(data.get('city') ?? '').trim(),
+			country: String(data.get('country') ?? '').trim() || 'Suisse',
+		};
+
+		if (!billing.email || !billing.last_name || !billing.street || !billing.zipcode || !billing.city) {
+			if (statusEl) {
+				statusEl.textContent = 'Merci de renseigner le nom, le courriel et l’adresse.';
+				statusEl.classList.remove('hidden');
+			}
+			return;
+		}
+
+		const sameAddress = same instanceof HTMLInputElement ? same.checked : true;
+		const shippingAddress = sameAddress
+			? billing
+			: {
+					first_name: String(data.get('ship_first_name') ?? '').trim() || billing.first_name,
+					last_name: String(data.get('ship_last_name') ?? '').trim() || billing.last_name,
+					email: billing.email,
+					phone: billing.phone,
+					company: billing.company,
+					street: String(data.get('ship_street') ?? '').trim(),
+					number: String(data.get('ship_number') ?? '').trim(),
+					zipcode: String(data.get('ship_zipcode') ?? '').trim(),
+					city: String(data.get('ship_city') ?? '').trim(),
+					country: String(data.get('ship_country') ?? '').trim() || 'Suisse',
+				};
+
+		if (!sameAddress && (!shippingAddress.street || !shippingAddress.zipcode || !shippingAddress.city)) {
+			if (statusEl) {
+				statusEl.textContent = 'Merci de renseigner l’adresse de livraison.';
+				statusEl.classList.remove('hidden');
+			}
+			return;
+		}
+
+		writeCheckout({ sameAddress, billing, shipping: shippingAddress });
+		unlockCheckout();
+		window.location.href = '/shop/checkout';
+	});
+</script>

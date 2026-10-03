@@ -1,0 +1,185 @@
+---
+import type { ShopBook } from '../services/books';
+import CheckoutSteps from '../../components/CheckoutSteps.astro';
+import Container from '../../components/Container.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getBooks, toShopBook } from '../../services/books';
+
+const catalog: ShopBook[] = (await getBooks()).map(toShopBook);
+---
+
+<BaseLayout
+	title="Votre commande"
+	description="Votre panier aux Éditions Orat. Quantités, total, puis passage de commande."
+>
+	<Container>
+		<header class="border-b border-line pb-10 pt-12 md:pb-12 md:pt-16">
+			<CheckoutSteps current="cart" />
+			<h1 class="mt-8 font-serif text-4xl font-semibold leading-[1.12] tracking-tight md:text-5xl">
+				Votre commande
+			</h1>
+		</header>
+	</Container>
+
+	<section class="py-12 md:py-16">
+		<Container>
+			<div id="cart-root">
+				<ul id="cart-lines" class="divide-y divide-line"></ul>
+				<p id="cart-empty" class="font-body text-xl text-ink-muted">
+					Votre panier est vide.
+					<a href="/catalogue" class="editorial-link ml-2 inline-block">Le catalogue</a>
+				</p>
+				<div id="cart-footer" class="mt-10 hidden items-end justify-between gap-8">
+					<p id="cart-total" class="font-serif text-3xl font-semibold"></p>
+					<button
+						type="button"
+						id="cart-next"
+						class="inline-flex items-center bg-ink px-8 py-3.5 font-sans text-[0.8125rem] font-semibold tracking-[0.14em] text-paper uppercase transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+					>
+						Passer commande
+					</button>
+				</div>
+			</div>
+		</Container>
+	</section>
+</BaseLayout>
+
+<script type="application/json" id="shop-catalog" set:html={JSON.stringify(catalog)} />
+
+<script>
+	import { addToCart, readCart, setQuantity } from '../../lib/cart';
+	import { unlockAddress } from '../../lib/checkout';
+	import type { ShopBook } from '../../services/books';
+
+	const catalog: ShopBook[] = JSON.parse(document.getElementById('shop-catalog')?.textContent ?? '[]');
+	const initialSlug = new URLSearchParams(window.location.search).get('livre');
+	const linesEl = document.getElementById('cart-lines');
+	const emptyEl = document.getElementById('cart-empty');
+	const footerEl = document.getElementById('cart-footer');
+	const totalEl = document.getElementById('cart-total');
+	const nextBtn = document.getElementById('cart-next');
+
+	function bookOf(slug: string) {
+		return catalog.find((book) => book.slug === slug);
+	}
+
+	function formatAmount(amount: number, currency: ShopBook['currency']) {
+		return new Intl.NumberFormat('fr-CH', {
+			style: 'currency',
+			currency,
+			minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
+			maximumFractionDigits: 2,
+		}).format(amount);
+	}
+
+	function render() {
+		if (!linesEl || !emptyEl || !footerEl || !totalEl || !nextBtn) return;
+		const rows = readCart()
+			.map((item) => ({ item, book: bookOf(item.slug) }))
+			.filter((row): row is { item: ReturnType<typeof readCart>[number]; book: ShopBook } => Boolean(row.book));
+
+		linesEl.replaceChildren();
+		emptyEl.classList.toggle('hidden', rows.length > 0);
+		footerEl.classList.toggle('hidden', rows.length === 0);
+		footerEl.classList.toggle('flex', rows.length > 0);
+
+		let total = 0;
+		let priced = true;
+
+		for (const { item, book } of rows) {
+			if (book.price == null) priced = false;
+			else total += book.price * item.quantity;
+
+			const title = document.createElement('p');
+			title.className = 'font-serif text-2xl font-semibold leading-snug';
+			title.textContent = book.title;
+
+			const meta = document.createElement('p');
+			meta.className = 'mt-1 font-body text-lg text-ink-muted';
+			meta.textContent = book.authors;
+
+			const info = document.createElement('div');
+			info.append(title, meta);
+
+			const minus = document.createElement('button');
+			minus.type = 'button';
+			minus.dataset.qty = book.slug;
+			minus.dataset.delta = '-1';
+			minus.className = 'grid size-9 cursor-pointer place-items-center text-ink-muted hover:text-ink';
+			minus.setAttribute('aria-label', 'Diminuer');
+			minus.textContent = '−';
+
+			const value = document.createElement('span');
+			value.className = 'min-w-[2rem] text-center font-body text-xl';
+			value.textContent = String(item.quantity);
+
+			const plus = document.createElement('button');
+			plus.type = 'button';
+			plus.dataset.qty = book.slug;
+			plus.dataset.delta = '1';
+			plus.className = 'grid size-9 cursor-pointer place-items-center text-ink-muted hover:text-ink';
+			plus.setAttribute('aria-label', 'Augmenter');
+			plus.textContent = '+';
+
+			const qty = document.createElement('div');
+			qty.className = 'flex items-center gap-1';
+			qty.append(minus, value, plus);
+
+			const price = document.createElement('span');
+			price.className = 'font-body text-xl';
+			price.textContent =
+				book.price != null ? formatAmount(book.price * item.quantity, book.currency) : book.priceLabel;
+
+			const remove = document.createElement('button');
+			remove.type = 'button';
+			remove.dataset.remove = book.slug;
+			remove.dataset.hint = 'Retirer l’article du panier';
+			remove.className = 'label cursor-pointer hover:text-ink';
+			remove.setAttribute('aria-label', 'Retirer l’article du panier');
+			remove.textContent = 'Retirer';
+
+			const controls = document.createElement('div');
+			controls.className = 'flex flex-wrap items-center gap-5';
+			controls.append(qty, price, remove);
+
+			const li = document.createElement('li');
+			li.className = 'flex flex-wrap items-baseline justify-between gap-6 py-6';
+			li.append(info, controls);
+			linesEl.append(li);
+		}
+
+		totalEl.textContent = priced
+			? `Total ${formatAmount(total, rows[0]?.book.currency ?? 'CHF')}`
+			: 'Total communiqué à la commande';
+		if (nextBtn instanceof HTMLButtonElement) nextBtn.disabled = rows.length === 0;
+	}
+
+	if (initialSlug && bookOf(initialSlug)) {
+		const already = readCart().some((item) => item.slug === initialSlug);
+		if (!already) addToCart(initialSlug, 1);
+	}
+
+	linesEl?.addEventListener('click', (event) => {
+		const qty = (event.target as HTMLElement | null)?.closest<HTMLElement>('[data-qty]');
+		if (qty?.dataset.qty) {
+			const current = readCart().find((item) => item.slug === qty.dataset.qty)?.quantity ?? 1;
+			setQuantity(qty.dataset.qty, current + Number(qty.dataset.delta));
+			render();
+			return;
+		}
+		const remove = (event.target as HTMLElement | null)?.closest<HTMLElement>('[data-remove]');
+		if (remove?.dataset.remove) {
+			setQuantity(remove.dataset.remove, 0);
+			render();
+		}
+	});
+
+	nextBtn?.addEventListener('click', () => {
+		if (!readCart().length) return;
+		unlockAddress();
+		window.location.href = '/shop/address';
+	});
+
+	window.addEventListener('orat-cart', () => render());
+	render();
+</script>

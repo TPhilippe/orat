@@ -1,3 +1,5 @@
+import { resetReached } from './checkout';
+
 export type CartItem = {
 	slug: string;
 	quantity: number;
@@ -28,6 +30,7 @@ export function readCart(): CartItem[] {
 export function writeCart(items: CartItem[]): void {
 	if (typeof window === 'undefined') return;
 	window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+	if (items.length === 0) resetReached();
 	window.dispatchEvent(new CustomEvent('orat-cart'));
 }
 

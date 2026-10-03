@@ -1,0 +1,69 @@
+---
+interface Props {
+	current: 'cart' | 'address' | 'checkout';
+}
+
+const { current } = Astro.props;
+
+const steps = [
+	{ id: 'cart', href: '/shop/cart', label: 'Votre Commande' },
+	{ id: 'address', href: '/shop/address', label: 'Livraison/Facturation' },
+	{ id: 'checkout', href: '/shop/checkout', label: 'Validation' },
+] as const;
+---
+
+<nav
+	class="flex flex-wrap items-center gap-x-3 gap-y-2"
+	aria-label="Étapes de commande"
+	data-checkout-steps
+	data-current={current}
+>
+	{
+		steps.map((step, index) => (
+			<>
+				{index > 0 && (
+					<span class="text-line" aria-hidden="true">
+						›
+					</span>
+				)}
+				<a
+					href={step.href}
+					data-step={step.id}
+					class="font-sans text-[0.75rem] font-semibold tracking-[0.12em] text-ink-muted uppercase transition-colors sm:tracking-[0.14em]"
+				>
+					{step.label}
+				</a>
+			</>
+		))
+	}
+</nav>
+
+<script>
+	import { readCheckout } from '../lib/checkout';
+
+	document.querySelectorAll<HTMLElement>('[data-checkout-steps]').forEach((root) => {
+		const current = root.dataset.current;
+		const reached = readCheckout().reached;
+
+		root.querySelectorAll<HTMLAnchorElement>('[data-step]').forEach((link) => {
+			const id = link.dataset.step;
+			const unlocked =
+				id === 'cart' ||
+				(id === 'address' && reached.address) ||
+				(id === 'checkout' && reached.checkout);
+			const active = id === current;
+
+			link.classList.toggle('text-ink', active);
+			link.classList.toggle('text-ink-muted', unlocked && !active);
+			link.classList.toggle('hover:text-ink', unlocked && !active);
+			link.classList.toggle('text-line', !unlocked);
+			link.classList.toggle('pointer-events-none', !unlocked);
+			link.classList.toggle('cursor-pointer', unlocked);
+			link.classList.toggle('cursor-default', !unlocked);
+			if (active) link.setAttribute('aria-current', 'step');
+			else link.removeAttribute('aria-current');
+			if (!unlocked) link.setAttribute('aria-disabled', 'true');
+			else link.removeAttribute('aria-disabled');
+		});
+	});
+</script>

@@ -1,20 +1,23 @@
 ---
+import CartWidget from './CartWidget.astro';
 import { navigation, site } from '../data/site';
+import { getBooks, toShopBook } from '../services/books';
 
 const pathname = Astro.url.pathname;
 const current = pathname.endsWith('/') && pathname !== '/' ? pathname.slice(0, -1) : pathname;
+const catalog = (await getBooks()).map(toShopBook);
 
 function isActive(href: string) {
 	if (href === '/') return current === '/';
 	if (href === '/catalogue') {
-		return current === '/catalogue' || current.startsWith('/catalogue/') || current.startsWith('/livres/');
+		return current === '/catalogue' || current.startsWith('/livres/');
 	}
 	return current === href || current.startsWith(`${href}/`);
 }
 ---
 
-<header class="border-b border-line">
-	<div class="hide-scrollbar mx-auto flex max-w-[1400px] flex-nowrap items-center justify-between gap-3 overflow-x-auto px-4 py-5 sm:gap-6 sm:px-6 md:gap-8 md:px-12 md:py-6 lg:px-16">
+<header class="sticky top-0 z-50 overflow-visible border-b border-line bg-paper">
+	<div class="mx-auto flex max-w-[1400px] flex-nowrap items-center justify-between gap-3 px-4 py-5 sm:gap-6 sm:px-6 md:gap-8 md:px-12 md:py-6 lg:px-16">
 		<a href="/" class="shrink-0" aria-label={site.name}>
 			<img
 				src="/logos/orat.png"
@@ -25,25 +28,28 @@ function isActive(href: string) {
 			/>
 		</a>
 
-		<nav class="shrink-0" aria-label="Navigation principale">
-			<ul class="flex flex-nowrap items-center gap-3 sm:gap-5 md:gap-8 lg:gap-9">
-				{
-					navigation.map((item) => (
-						<li class="shrink-0 whitespace-nowrap">
-							<a
-								href={item.href}
-								class:list={[
-									'inline-block whitespace-nowrap pr-[0.12em] font-sans text-[0.7rem] font-semibold tracking-[0.08em] uppercase transition-colors duration-200 hover:text-accent sm:text-[0.75rem] sm:tracking-[0.1em] md:text-[0.875rem] md:tracking-[0.12em]',
-									isActive(item.href) ? 'text-ink' : 'text-ink-muted',
-								]}
-								aria-current={isActive(item.href) ? 'page' : undefined}
-							>
-								{item.label}
-							</a>
-						</li>
-					))
-				}
-			</ul>
-		</nav>
+		<div class="flex min-w-0 flex-nowrap items-center gap-3 sm:gap-5 md:gap-8 lg:gap-9">
+			<nav class="hide-scrollbar min-w-0 overflow-x-auto" aria-label="Navigation principale">
+				<ul class="flex flex-nowrap items-center gap-3 sm:gap-5 md:gap-8 lg:gap-9">
+					{
+						navigation.map((item) => (
+							<li class="shrink-0 whitespace-nowrap">
+								<a
+									href={item.href}
+									class:list={[
+										'inline-block whitespace-nowrap pr-[0.12em] font-sans text-[0.7rem] font-semibold tracking-[0.08em] uppercase transition-colors duration-200 hover:text-accent sm:text-[0.75rem] sm:tracking-[0.1em] md:text-[0.875rem] md:tracking-[0.12em]',
+										isActive(item.href) ? 'text-ink' : 'text-ink-muted',
+									]}
+									aria-current={isActive(item.href) ? 'page' : undefined}
+								>
+									{item.label}
+								</a>
+							</li>
+						))
+					}
+				</ul>
+			</nav>
+			<CartWidget catalog={catalog} />
+		</div>
 	</div>
 </header>

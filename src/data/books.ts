@@ -119,7 +119,7 @@ export const books: Book[] = [
 		id: '5',
 		slug: 'a-la-recherche-de-la-lumiere-par-la-bete-decomposee',
 		title: 'À la recherche de la Lumière par la bête décomposée',
-		subtitle: 'L’intégral — histoires fantastiques et chevaleresques modernes',
+		subtitle: 'L’intégrale — histoires fantastiques et chevaleresques modernes',
 		authors: [bySlug['dorian-amar']],
 		collection: recits,
 		year: 2026,

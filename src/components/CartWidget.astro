@@ -1,0 +1,295 @@
+---
+import type { ShopBook } from '../services/books';
+
+interface Props {
+	catalog: ShopBook[];
+}
+
+const { catalog } = Astro.props;
+---
+
+<div class="group/cart relative z-50 shrink-0" data-cart-widget>
+	<a
+		href="/shop/cart"
+		class="relative grid size-12 cursor-pointer place-items-center text-ink-muted transition-colors hover:text-ink"
+		aria-label="Panier"
+		data-cart-link
+	>
+		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="size-[1.5rem]" fill="none" aria-hidden="true">
+			<path d="M7 8h10l-.85 11.2a1.5 1.5 0 0 1-1.5 1.3H9.35a1.5 1.5 0 0 1-1.5-1.3L7 8Z" stroke="currentColor" stroke-width="1.2" />
+			<path d="M9.5 8V7.2a2.5 2.5 0 0 1 5 0V8" stroke="currentColor" stroke-width="1.2" />
+		</svg>
+		<span
+			class="absolute -right-0.5 -bottom-0.5 hidden min-w-[1.1rem] rounded-full bg-accent px-1 text-center font-sans text-[0.62rem] font-semibold leading-[1.1rem] text-paper"
+			data-cart-badge
+		></span>
+	</a>
+
+	<div
+		class="pointer-events-none invisible absolute right-0 top-full z-40 w-[min(calc(100vw-2rem),22rem)] pt-3 opacity-0 transition-opacity duration-150 group-hover/cart:pointer-events-auto group-hover/cart:visible group-hover/cart:opacity-100"
+		data-cart-dropdown
+	>
+		<div class="border border-line bg-paper-raised p-5 shadow-[0_16px_40px_rgb(27_24_20_/_0.08)]">
+			<p class="label">Panier</p>
+			<div data-cart-dropdown-body class="mt-4"></div>
+		</div>
+	</div>
+</div>
+
+<script type="application/json" id="cart-catalog" set:html={JSON.stringify(catalog)} />
+
+<script>
+	import { addToCart, cartCount, readCart, setQuantity } from '../lib/cart';
+	import type { ShopBook } from '../services/books';
+
+	const catalog: ShopBook[] = JSON.parse(document.getElementById('cart-catalog')?.textContent ?? '[]');
+
+	function bookOf(slug: string) {
+		return catalog.find((book) => book.slug === slug);
+	}
+
+	function formatAmount(amount: number, currency: ShopBook['currency']) {
+		return new Intl.NumberFormat('fr-CH', {
+			style: 'currency',
+			currency,
+			minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
+			maximumFractionDigits: 2,
+		}).format(amount);
+	}
+
+	function goToCartLink() {
+		const go = document.createElement('a');
+		go.href = '/shop/cart';
+		go.className =
+			'mt-5 inline-flex w-full cursor-pointer items-center justify-center bg-ink px-4 py-3 font-sans text-[0.75rem] font-semibold tracking-[0.14em] text-paper uppercase transition-colors hover:bg-accent';
+		go.textContent = 'Aller au panier';
+		return go;
+	}
+
+	function prefersReducedMotion() {
+		return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	}
+
+	function pulseCart() {
+		const link = document.querySelector<HTMLElement>('[data-cart-link]');
+		if (!link) return;
+		link.classList.remove('orat-cart-receive');
+		void link.offsetWidth;
+		link.classList.add('orat-cart-receive');
+		window.setTimeout(() => link.classList.remove('orat-cart-receive'), 450);
+	}
+
+	function originRect(add: HTMLElement): DOMRect {
+		return add.getBoundingClientRect();
+	}
+
+	function flyCoverToCart(add: HTMLElement, slug: string) {
+		const target = document.querySelector<HTMLElement>('[data-cart-link]');
+		const src = add.dataset.cover || bookOf(slug)?.cover;
+		if (!target) return;
+
+		if (prefersReducedMotion() || !src) {
+			pulseCart();
+			return;
+		}
+
+		const from = originRect(add);
+		const to = target.getBoundingClientRect();
+		const flyer = document.createElement('img');
+		flyer.className = 'orat-cart-flyer';
+		flyer.src = src;
+		flyer.alt = '';
+		flyer.setAttribute('aria-hidden', 'true');
+		document.body.append(flyer);
+
+		const startW = 108;
+		const startH = startW * 1.5;
+		const startX = from.left + from.width / 2;
+		const startY = from.top + from.height / 2;
+		const endX = to.left + to.width / 2;
+		const endY = to.top + to.height / 2;
+		const dx = endX - startX;
+		const dy = endY - startY;
+
+		flyer.style.width = `${startW}px`;
+		flyer.style.height = `${startH}px`;
+		flyer.style.left = `${startX}px`;
+		flyer.style.top = `${startY}px`;
+
+		const animation = flyer.animate(
+			[
+				{
+					transform: 'translate(-50%, -50%) scale(1) rotate(-3deg)',
+					opacity: 0.88,
+				},
+				{
+					transform: `translate(calc(-50% + ${dx * 0.42}px), calc(-50% + ${dy * 0.28 - 28}px)) scale(0.9) rotate(4deg)`,
+					opacity: 0.7,
+					offset: 0.58,
+				},
+				{
+					transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.28) rotate(7deg)`,
+					opacity: 0.12,
+				},
+			],
+			{
+				duration: 1150,
+				easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+				fill: 'forwards',
+			},
+		);
+
+		animation.finished.finally(() => {
+			flyer.remove();
+			pulseCart();
+		});
+	}
+
+	function renderWidget() {
+		const widgets = document.querySelectorAll<HTMLElement>('[data-cart-widget]');
+		const items = readCart();
+		const count = cartCount(items);
+
+		widgets.forEach((widget) => {
+			const badge = widget.querySelector<HTMLElement>('[data-cart-badge]');
+			const body = widget.querySelector<HTMLElement>('[data-cart-dropdown-body]');
+			const link = widget.querySelector<HTMLAnchorElement>('[data-cart-link]');
+			if (badge) {
+				badge.textContent = String(count);
+				badge.classList.toggle('hidden', count === 0);
+			}
+			if (link) {
+				link.setAttribute('aria-label', count ? `Panier, ${count} article${count > 1 ? 's' : ''}` : 'Panier');
+			}
+			if (!body) return;
+
+			const rows = items
+				.map((item) => ({ item, book: bookOf(item.slug) }))
+				.filter((row): row is { item: (typeof items)[number]; book: ShopBook } => Boolean(row.book));
+
+			if (!rows.length) {
+				body.replaceChildren();
+				const empty = document.createElement('p');
+				empty.className = 'font-body text-lg text-ink-muted';
+				empty.textContent = 'Votre panier est vide.';
+				body.append(empty, goToCartLink());
+				return;
+			}
+
+			const list = document.createElement('ul');
+			list.className = 'divide-y divide-line';
+			let total = 0;
+			let priced = true;
+
+			for (const { item, book } of rows) {
+				if (book.price == null) priced = false;
+				else total += book.price * item.quantity;
+
+				const li = document.createElement('li');
+				li.className = 'py-3';
+
+				const top = document.createElement('div');
+				top.className = 'flex items-start justify-between gap-3';
+
+				const title = document.createElement('p');
+				title.className = 'font-serif text-lg font-semibold leading-snug';
+				title.textContent = book.title;
+
+				const linePrice = document.createElement('p');
+				linePrice.className = 'shrink-0 font-body text-base text-ink';
+				linePrice.textContent =
+					book.price != null ? formatAmount(book.price * item.quantity, book.currency) : book.priceLabel;
+
+				top.append(title, linePrice);
+
+				const controls = document.createElement('div');
+				controls.className = 'mt-2 flex items-center justify-between gap-3';
+
+				const qty = document.createElement('div');
+				qty.className = 'flex items-center gap-1.5';
+
+				const minus = document.createElement('button');
+				minus.type = 'button';
+				minus.dataset.qty = book.slug;
+				minus.dataset.delta = '-1';
+				minus.className = 'grid size-7 cursor-pointer place-items-center text-ink-muted hover:text-ink';
+				minus.setAttribute('aria-label', `Diminuer ${book.title}`);
+				minus.textContent = '−';
+
+				const value = document.createElement('span');
+				value.className = 'min-w-[1.5rem] text-center font-body text-base';
+				value.textContent = String(item.quantity);
+
+				const plus = document.createElement('button');
+				plus.type = 'button';
+				plus.dataset.qty = book.slug;
+				plus.dataset.delta = '1';
+				plus.className = 'grid size-7 cursor-pointer place-items-center text-ink-muted hover:text-ink';
+				plus.setAttribute('aria-label', `Augmenter ${book.title}`);
+				plus.textContent = '+';
+
+				qty.append(minus, value, plus);
+
+				const remove = document.createElement('button');
+				remove.type = 'button';
+				remove.dataset.remove = book.slug;
+				remove.className =
+					'cursor-pointer font-sans text-[0.7rem] font-semibold tracking-[0.12em] text-ink-muted uppercase hover:text-ink';
+				remove.textContent = 'Retirer';
+
+				controls.append(qty, remove);
+				li.append(top, controls);
+				list.append(li);
+			}
+
+			const footer = document.createElement('div');
+			footer.className = 'mt-4 flex items-baseline justify-between gap-4 border-t border-line pt-4';
+			const totalLabel = document.createElement('p');
+			totalLabel.className = 'font-serif text-xl font-semibold';
+			totalLabel.textContent = priced ? formatAmount(total, rows[0]?.book.currency ?? 'CHF') : 'Prix communiqué';
+			const totalWord = document.createElement('p');
+			totalWord.className = 'label';
+			totalWord.textContent = 'Total';
+			footer.append(totalWord, totalLabel);
+
+			body.replaceChildren(list, footer, goToCartLink());
+		});
+	}
+
+	document.addEventListener('click', (event) => {
+		const add = (event.target as HTMLElement | null)?.closest<HTMLElement>('[data-add-cart]');
+		if (add?.dataset.addCart) {
+			event.preventDefault();
+			const slug = add.dataset.addCart;
+			addToCart(slug, 1);
+			flyCoverToCart(add, slug);
+			renderWidget();
+			return;
+		}
+
+		const inDropdown = (event.target as HTMLElement | null)?.closest('[data-cart-dropdown]');
+		if (!inDropdown) return;
+
+		const qty = (event.target as HTMLElement | null)?.closest<HTMLElement>('[data-qty]');
+		if (qty?.dataset.qty) {
+			event.preventDefault();
+			event.stopPropagation();
+			const current = readCart().find((item) => item.slug === qty.dataset.qty)?.quantity ?? 1;
+			const next = current + Number(qty.dataset.delta);
+			setQuantity(qty.dataset.qty, next);
+			renderWidget();
+			return;
+		}
+
+		const remove = (event.target as HTMLElement | null)?.closest<HTMLElement>('[data-remove]');
+		if (remove?.dataset.remove) {
+			event.preventDefault();
+			event.stopPropagation();
+			setQuantity(remove.dataset.remove, 0);
+			renderWidget();
+		}
+	});
+
+	window.addEventListener('orat-cart', () => renderWidget());
+	renderWidget();
+</script>
